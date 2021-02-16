@@ -15,15 +15,17 @@ dependencies {
 kotlin {
     js(LEGACY) {
         browser {
-            binaries.executable()
-            webpackTask { cssSupport.enabled = true }
-            runTask { cssSupport.enabled = true }
-            testTask {
-                useKarma {
-                    useChromeHeadless()
-                    webpackConfig.cssSupport.enabled = true
-                }
+            webpackTask {
+                cssSupport.enabled = true
+                outputFileName = "game.js"
+                sourceMaps = false
             }
+            runTask {
+                cssSupport.enabled = true
+                outputFileName = "game.js"
+                sourceMaps = false
+            }
+            binaries.executable()
         }
     }
 }
