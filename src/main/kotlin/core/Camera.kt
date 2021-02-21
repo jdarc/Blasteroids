@@ -66,8 +66,8 @@ class Camera(fov: Float = Scalar.PI / 4F, aspectRatio: Float = 1F, nearPlane: Fl
 
     val direction get() = Vector3.normalize(Vector3(lookAt[0] - eyePos[0], lookAt[1] - eyePos[1], lookAt[2] - eyePos[2]))
 
-    val view get() = regenerateMatrix(viewMatrix)
-    val projection get() = regenerateMatrix(projMatrix)
+    val view get() = regenerateMatrix().run { viewMatrix }
+    val projection get() = regenerateMatrix().run { projMatrix }
 
     fun moveUp(amount: Float) = moveDown(-amount)
     fun moveDown(amount: Float) = strafe(view.m10 * amount, view.m11 * amount, view.m12 * amount)
@@ -95,12 +95,11 @@ class Camera(fov: Float = Scalar.PI / 4F, aspectRatio: Float = 1F, nearPlane: Fl
         dirty = true
     }
 
-    private fun regenerateMatrix(pass: Matrix4): Matrix4 {
+    private fun regenerateMatrix() {
         if (dirty) {
             viewMatrix = Matrix4.createLookAt(position, target, up)
             projMatrix = Matrix4.createPerspectiveFov(fieldOfView, aspectRatio, nearDistance, farDistance)
             dirty = false
         }
-        return pass
     }
 }
