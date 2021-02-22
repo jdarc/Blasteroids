@@ -8,12 +8,13 @@ struct Vertex { vec3 position; vec3 normal; vec2 uv; };
 
 const vec3 GAMMA = vec3(1.0 / 2.2);
 
-uniform Light u_lights[8];
 uniform Colors u_colors;
 uniform Textures u_textures;
+uniform Light u_lights[8];
 
 uniform float u_ambientIntensity;
 uniform float u_shininess;
+uniform vec3 u_camera_position;
 
 in Vertex v_world;
 out vec4 fragColor;
@@ -25,19 +26,16 @@ vec3 gammaCorrect(vec3 rgb) {
 void main() {
     vec3 diffuseColor = u_colors.diffuse * vec3(texture(u_textures.diffuse, v_world.uv));
     vec3 N = normalize(v_world.normal);
-    vec3 V = normalize(-v_world.position);
+    vec3 V = normalize(u_camera_position - v_world.position);
 
     vec3 diffuseSum = vec3(0.0);
     vec3 specularSum = vec3(0.0);
 
     for (int i = 0; i < 8; ++i) {
         Light light = u_lights[i];
-        if (light.on != 0) {
-            // Lambert's cosine law
+        if (bool(light.on)) {
             vec3 L = normalize(light.position - v_world.position);
             float lambertian = max(dot(N, L), 0.0);
-
-            // Compute diffuse and specularity contributions
             if (lambertian > 0.0) {
                 diffuseSum += lambertian * diffuseColor * light.color;
                 vec3 R = reflect(-L, N);
