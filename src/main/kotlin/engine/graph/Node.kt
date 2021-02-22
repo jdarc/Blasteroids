@@ -12,7 +12,7 @@ abstract class Node(transform: Matrix4 = Matrix4.IDENTITY) {
     abstract val localBounds: Aabb
     val worldBounds = Aabb()
 
-    fun isContainedBy(frustum: Frustum) = frustum.intersects(worldBounds)
+    fun isContainedBy(frustum: Frustum) = frustum.contains(worldBounds)
 
     var parent: BranchNode? = null
         set(value) {

@@ -1,9 +1,8 @@
-@file:Suppress("unused")
-
 package engine.core
 
 import kotlinx.browser.window
 
+@Suppress("unused")
 class GameLoop(private val game: Game) {
     private var running = false
     private var tock = 0.0

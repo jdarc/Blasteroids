@@ -1,11 +1,10 @@
-@file:Suppress("SpellCheckingInspection")
-
 package engine.core
 
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.coroutines.coroutineScope
 
+@Suppress("SpellCheckingInspection")
 object Loader {
 
     suspend fun read(path: String, filename: String) = coroutineScope {

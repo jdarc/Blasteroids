@@ -1,10 +1,9 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "SpellCheckingInspection")
-
 package engine.core
 
 import kotlinx.coroutines.channels.Channel
 import org.w3c.dom.Image
 
+@Suppress("SpellCheckingInspection")
 class Texture private constructor(val source: Image) {
 
     companion object {

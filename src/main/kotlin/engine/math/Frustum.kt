@@ -1,22 +1,20 @@
 package engine.math
 
-class Frustum(val view: Matrix4, val projection: Matrix4) {
-    private val mat = projection * view
-    private val lft = Plane.create(mat.m30 + mat.m00, mat.m31 + mat.m01, mat.m32 + mat.m02, mat.m33 + mat.m03)
-    private val rht = Plane.create(mat.m30 - mat.m00, mat.m31 - mat.m01, mat.m32 - mat.m02, mat.m33 - mat.m03)
-    private val bot = Plane.create(mat.m30 + mat.m10, mat.m31 + mat.m11, mat.m32 + mat.m12, mat.m33 + mat.m13)
-    private val top = Plane.create(mat.m30 - mat.m10, mat.m31 - mat.m11, mat.m32 - mat.m12, mat.m33 - mat.m13)
-    private val ner = Plane.create(mat.m30 + mat.m20, mat.m31 + mat.m21, mat.m32 + mat.m22, mat.m33 + mat.m23)
-    private val far = Plane.create(mat.m30 - mat.m20, mat.m31 - mat.m21, mat.m32 - mat.m22, mat.m33 - mat.m23)
+import engine.core.Camera
 
-    fun intersects(box: Aabb): Boolean {
-        if (box.pointsBehind(ner) == 8) return false
-        if (box.pointsBehind(far) == 8) return false
-        if (box.pointsBehind(lft) == 8) return false
-        if (box.pointsBehind(rht) == 8) return false
-        if (box.pointsBehind(top) == 8) return false
-        if (box.pointsBehind(bot) == 8) return false
-        return true
+class Frustum(camera: Camera) {
+    private val planes = (camera.projection * camera.view).run {
+        arrayOf(
+            Plane.create(m30 + m00, m31 + m01, m32 + m02, m33 + m03),
+            Plane.create(m30 - m00, m31 - m01, m32 - m02, m33 - m03),
+            Plane.create(m30 + m10, m31 + m11, m32 + m12, m33 + m13),
+            Plane.create(m30 - m10, m31 - m11, m32 - m12, m33 - m13),
+            Plane.create(m30 + m20, m31 + m21, m32 + m22, m33 + m23),
+            Plane.create(m30 - m20, m31 - m21, m32 - m22, m33 - m23)
+        )
     }
-}
 
+    fun intersect(ray: Ray) = ray.getPoint(planes.map { it.intersect(ray) }.minOf { it })
+
+    fun contains(box: Aabb) = planes.any { box.pointsBehind(it) == 8 }.not()
+}

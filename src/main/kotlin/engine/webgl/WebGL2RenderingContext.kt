@@ -1,10 +1,9 @@
-@file:Suppress("unused", "PropertyName")
-
 package engine.webgl
 
 import org.khronos.webgl.WebGLObject
 import org.khronos.webgl.WebGLRenderingContext
 
+@Suppress("unused", "PropertyName")
 abstract external class WebGL2RenderingContext : WebGLRenderingContext {
     val DEPTH_BUFFER_BIT: Int
     val STENCIL_BUFFER_BIT: Int

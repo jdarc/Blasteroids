@@ -1,5 +1,6 @@
 package engine.graph
 
+import engine.core.Camera
 import engine.core.Color
 import engine.math.Frustum
 
@@ -20,10 +21,14 @@ class Scene {
         root.traverseUp { it.updateWorldBounds() }
     }
 
-    fun render(frustum: Frustum, renderer: Renderer) {
-        renderer.view = frustum.view
-        renderer.projection = frustum.projection
+    fun render(camera: Camera, renderer: Renderer) {
+        renderer.resize()
+        camera.aspectRatio = renderer.aspectRatio
+        renderer.view = camera.view
+        renderer.projection = camera.projection
+
         renderer.clear(backcolor)
-        root.traverseDown { it.isContainedBy(frustum).apply { it.render(renderer) } }
+
+        Frustum(camera).run { root.traverseDown { it.isContainedBy(this).apply { it.render(renderer) } } }
     }
 }

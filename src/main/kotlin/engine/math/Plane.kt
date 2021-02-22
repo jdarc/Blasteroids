@@ -4,7 +4,17 @@ package engine.math
 class Plane private constructor(val normal: Vector3, val distance: Float) {
 
     fun dot(rhs: Vector3) = dot(rhs.x, rhs.y, rhs.z)
+
     fun dot(x: Float, y: Float, z: Float) = (normal.x * x) + (normal.y * y) + (normal.z * z) + distance
+
+    fun intersect(ray: Ray): Float {
+        val vd = Vector3.dot(normal, ray.direction)
+        if (vd != 0F) {
+            val t = -(Vector3.dot(normal, ray.origin) - distance) / vd
+            if (t > 0F) return t
+        }
+        return Float.POSITIVE_INFINITY
+    }
 
     companion object {
         fun normalize(plane: Plane): Plane {

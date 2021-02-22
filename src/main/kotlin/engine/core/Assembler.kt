@@ -35,15 +35,23 @@ class Assembler {
         faces.add(Face(v, vn, vt, currentMaterial))
     }
 
-    fun compile(): Model {
-        val count = Mesh.VERTICES_PER_FACE * Mesh.ELEMENTS_PER_VERTEX
-        val groups = mutableMapOf<Material, Mesh>()
-        for ((material, faces) in faces.groupBy { it.material }.toMap()) {
+    fun compile(type: AssemblyType = AssemblyType.Model) = when (type) {
+        AssemblyType.Mesh -> {
+            val count = Mesh.VERTICES_PER_FACE * Mesh.ELEMENTS_PER_VERTEX
             val buffer = FloatArray(faces.size * count)
             faces.forEachIndexed { index, face -> pack(face).copyInto(buffer, index * count) }
-            groups[materials[material]!!] = Mesh(buffer, faces.size * Mesh.VERTICES_PER_FACE)
+            Mesh(buffer, faces.size * Mesh.VERTICES_PER_FACE)
         }
-        return Model(groups)
+        AssemblyType.Model -> {
+            val count = Mesh.VERTICES_PER_FACE * Mesh.ELEMENTS_PER_VERTEX
+            val groups = mutableMapOf<Material, Mesh>()
+            for ((material, faces) in faces.groupBy { it.material }.toMap()) {
+                val buffer = FloatArray(faces.size * count)
+                faces.forEachIndexed { index, face -> pack(face).copyInto(buffer, index * count) }
+                groups[materials[material]!!] = Mesh(buffer, faces.size * Mesh.VERTICES_PER_FACE)
+            }
+            Model(groups)
+        }
     }
 
     private fun pack(face: Face): FloatArray {

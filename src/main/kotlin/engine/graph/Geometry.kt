@@ -5,5 +5,5 @@ import engine.math.Aabb
 interface Geometry : Renderable {
     val vertexCount: Int
     val triangleCount: Int
-    val boundingBox: Aabb
+    val bounds: Aabb
 }

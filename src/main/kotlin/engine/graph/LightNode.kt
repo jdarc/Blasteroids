@@ -8,9 +8,9 @@ import engine.math.Vector3
 @Suppress("MemberVisibilityCanBePrivate")
 class LightNode(val index: Int, var color: Color, transform: Matrix4 = Matrix4.IDENTITY) : Node(transform) {
 
-    var on = true
+    var emitting = true
 
-    override val localBounds get() = Aabb(Vector3.NEGATIVE_INFINITY, Vector3.POSITIVE_INFINITY)
+    override val localBounds = Aabb()
 
     override fun updateWorldBounds() {
         worldBounds.reset().aggregate(localBounds)
@@ -18,7 +18,7 @@ class LightNode(val index: Int, var color: Color, transform: Matrix4 = Matrix4.I
 
     override fun render(renderer: Renderer): Boolean {
         val light = renderer.lights[index]
-        light.on = on
+        light.on = emitting
         light.color = color
         light.position = Vector3(worldTransform.m03, worldTransform.m13, worldTransform.m23)
         return true

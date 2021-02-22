@@ -6,7 +6,7 @@ import engine.math.Matrix4
 open class BranchNode(transform: Matrix4 = Matrix4.IDENTITY) : Node(transform) {
     private val children = mutableListOf<Node>()
 
-    override val localBounds get() = children.map { it.localBounds }.fold(Aabb(), { dst, src -> dst.aggregate(src); dst })
+    override val localBounds get() = children.fold(Aabb(), { dst, src -> dst.aggregate(src.localBounds) })
 
     fun add(vararg nodes: Node): BranchNode {
         nodes.forEach {

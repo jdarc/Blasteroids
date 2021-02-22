@@ -1,11 +1,10 @@
-@file:Suppress("unused", "DuplicatedCode", "SpellCheckingInspection")
-
 package engine.core
 
 import engine.math.Matrix4
 import engine.math.Scalar
 import engine.math.Vector3
 
+@Suppress("unused", "DuplicatedCode")
 object Primitives {
 
     fun createPlane(size: Float): Mesh {
@@ -28,7 +27,7 @@ object Primitives {
         assembler.addFace(intArrayOf(0, 1, 2), intArrayOf(0, 0, 0), intArrayOf(0, 1, 2))
         assembler.addFace(intArrayOf(2, 3, 0), intArrayOf(0, 0, 0), intArrayOf(2, 3, 0))
 
-        return assembler.compile().meshes.first()
+        return assembler.compile(AssemblyType.Mesh) as Mesh
     }
 
     fun createCube(size: Float): Mesh {
@@ -70,7 +69,7 @@ object Primitives {
         assembler.addFace(intArrayOf(3, 2, 7), intArrayOf(5, 5, 5), intArrayOf(0, 1, 2))
         assembler.addFace(intArrayOf(7, 6, 3), intArrayOf(5, 5, 5), intArrayOf(2, 3, 0))
 
-        return assembler.compile().meshes.first()
+        return assembler.compile(AssemblyType.Mesh) as Mesh
     }
 
     fun createSphere(radius: Float, stacks: Int, slices: Int): Mesh {
@@ -93,17 +92,16 @@ object Primitives {
         }
 
         for (slice in 0 until slices) {
-            val tindex = slice * (stacks + 1)
             for (stack in 0 until stacks) {
-                val ma = stack + tindex
-                val mb = stack + tindex + 1
-                val mc = stack + tindex + (stacks + 1) + 1
-                val md = stack + tindex + (stacks + 1)
+                val ma = stack + slice * (stacks + 1)
+                val mb = stack + slice * (stacks + 1) + 1
+                val mc = stack + slice * (stacks + 1) + (stacks + 1) + 1
+                val md = stack + slice * (stacks + 1) + (stacks + 1)
                 assembler.addFace(intArrayOf(md, ma, mb), intArrayOf(md, ma, mb), intArrayOf(md, ma, mb))
                 assembler.addFace(intArrayOf(mb, mc, md), intArrayOf(mb, mc, md), intArrayOf(mb, mc, md))
             }
         }
 
-        return assembler.compile().meshes.first()
+        return assembler.compile(AssemblyType.Mesh) as Mesh
     }
 }

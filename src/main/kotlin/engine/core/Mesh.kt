@@ -11,7 +11,7 @@ class Mesh(val data: FloatArray, private val count: Int) : Geometry {
 
     override val triangleCount get() = count / VERTICES_PER_FACE
 
-    override val boundingBox = data.toList().windowed(3, 8).map { (x, y, z) -> Vector3(x, y, z) }.fold(Aabb(), { acc, src -> acc.aggregate(src) })
+    override val bounds = data.toList().windowed(3, 8).map { (x, y, z) -> Vector3(x, y, z) }.fold(Aabb(), { acc, src -> acc.aggregate(src) })
 
     override fun render(renderer: Renderer) = renderer.draw(data, count)
 

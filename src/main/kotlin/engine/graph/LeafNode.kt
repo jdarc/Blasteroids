@@ -4,11 +4,10 @@ import engine.math.Matrix4
 
 open class LeafNode(private val geometry: Geometry, transform: Matrix4 = Matrix4.IDENTITY) : Node(transform) {
 
-    override val localBounds get() = geometry.boundingBox
+    override val localBounds = geometry.bounds
 
     override fun updateWorldBounds() {
-        worldBounds.reset()
-        worldBounds.aggregate(localBounds, worldTransform)
+        worldBounds.reset().aggregate(localBounds, worldTransform)
     }
 
     override fun render(renderer: Renderer): Boolean {

@@ -6,66 +6,73 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 @Suppress("unused", "DuplicatedCode", "MemberVisibilityCanBePrivate")
-data class Aabb(private var min: Vector3 = Vector3.POSITIVE_INFINITY, private var max: Vector3 = Vector3.NEGATIVE_INFINITY) {
-    val minimum get() = min
-    val maximum get() = max
+class Aabb(min: Vector3 = Vector3.POSITIVE_INFINITY, max: Vector3 = Vector3.NEGATIVE_INFINITY) {
+    private val min = floatArrayOf(min.x, min.y, min.z)
+    private val max = floatArrayOf(max.x, max.y, max.z)
 
-    val width get() = max.x - min.x
-    val height get() = max.y - min.y
-    val depth get() = max.z - min.z
+    val width get() = max[0] - min[0]
+    val height get() = max[1] - min[1]
+    val depth get() = max[2] - min[2]
 
-    val center get() = Vector3((min.x + max.x) / 2F, (min.y + max.y) / 2F, (min.z + max.z) / 2F)
-    val radius get() = sqrt((max.x - min.x).sqr() + (max.y - min.y).sqr() + (max.z - min.z).sqr()) / 2F
+    val center get() = Vector3((min[0] + max[0]) / 2F, (min[1] + max[1]) / 2F, (min[2] + max[2]) / 2F)
+    val radius get() = sqrt((max[0] - min[0]).sqr() + (max[1] - min[1]).sqr() + (max[2] - min[2]).sqr()) / 2F
 
     fun reset(): Aabb {
-        min = Vector3.POSITIVE_INFINITY
-        max = Vector3.NEGATIVE_INFINITY
+        min.fill(Float.POSITIVE_INFINITY)
+        max.fill(Float.NEGATIVE_INFINITY)
         return this
     }
 
     fun contains(v: Vector3) =
-        (v.x >= min.x) && (v.y >= min.y) && (v.z >= min.z) &&
-        (v.x <= max.x) && (v.y <= max.y) && (v.z <= max.z)
+        (v.x >= min[0]) && (v.y >= min[1]) && (v.z >= min[2]) &&
+        (v.x <= max[0]) && (v.y <= max[1]) && (v.z <= max[2])
 
     fun pointsBehind(plane: Plane) =
-        (if (plane.dot(min.x, max.y, min.z) < 0F) 1 else 0) +
-        (if (plane.dot(max.x, max.y, min.z) < 0F) 1 else 0) +
-        (if (plane.dot(max.x, min.y, min.z) < 0F) 1 else 0) +
-        (if (plane.dot(min.x, min.y, min.z) < 0F) 1 else 0) +
-        (if (plane.dot(min.x, max.y, max.z) < 0F) 1 else 0) +
-        (if (plane.dot(max.x, max.y, max.z) < 0F) 1 else 0) +
-        (if (plane.dot(max.x, min.y, max.z) < 0F) 1 else 0) +
-        (if (plane.dot(min.x, min.y, max.z) < 0F) 1 else 0)
+        (if (plane.dot(min[0], max[1], min[2]) < 0) 1 else 0) +
+        (if (plane.dot(max[0], max[1], min[2]) < 0) 1 else 0) +
+        (if (plane.dot(max[0], min[1], min[2]) < 0) 1 else 0) +
+        (if (plane.dot(min[0], min[1], min[2]) < 0) 1 else 0) +
+        (if (plane.dot(min[0], max[1], max[2]) < 0) 1 else 0) +
+        (if (plane.dot(max[0], max[1], max[2]) < 0) 1 else 0) +
+        (if (plane.dot(max[0], min[1], max[2]) < 0) 1 else 0) +
+        (if (plane.dot(min[0], min[1], max[2]) < 0) 1 else 0)
 
     fun aggregate(x: Float, y: Float, z: Float): Aabb {
-        min = Vector3(min(min.x, x), min(min.y, y), min(min.z, z))
-        max = Vector3(max(max.x, x), max(max.y, y), max(max.z, z))
+        if (x.isFinite() && y.isFinite() && z.isFinite()) {
+            min[0] = min(x, min[0])
+            min[1] = min(y, min[1])
+            min[2] = min(z, min[2])
+            max[0] = max(x, max[0])
+            max[1] = max(y, max[1])
+            max[2] = max(z, max[2])
+        }
         return this
     }
 
     fun aggregate(point: Vector3) = aggregate(point.x, point.y, point.z)
 
-    fun aggregate(box: Aabb) = aggregate(box.minimum).aggregate(box.maximum)
+    fun aggregate(other: Aabb) =
+        aggregate(other.min[0], other.min[1], other.min[2]).aggregate(other.max[0], other.max[1], other.max[2])
 
-    fun aggregate(box: Aabb, transform: Matrix4) {
-        val a = transform.m00 * box.minimum.x
-        val b = transform.m10 * box.minimum.x
-        val c = transform.m20 * box.minimum.x
-        val d = transform.m01 * box.minimum.y
-        val e = transform.m11 * box.minimum.y
-        val f = transform.m21 * box.minimum.y
-        val g = transform.m02 * box.minimum.z
-        val h = transform.m12 * box.minimum.z
-        val i = transform.m22 * box.minimum.z
-        val j = transform.m00 * box.maximum.x
-        val k = transform.m10 * box.maximum.x
-        val l = transform.m20 * box.maximum.x
-        val m = transform.m01 * box.maximum.y
-        val n = transform.m11 * box.maximum.y
-        val o = transform.m21 * box.maximum.y
-        val p = transform.m02 * box.maximum.z
-        val q = transform.m12 * box.maximum.z
-        val r = transform.m22 * box.maximum.z
+    fun aggregate(box: Aabb, transform: Matrix4): Aabb {
+        val a = transform.m00 * box.min[0]
+        val b = transform.m10 * box.min[0]
+        val c = transform.m20 * box.min[0]
+        val d = transform.m01 * box.min[1]
+        val e = transform.m11 * box.min[1]
+        val f = transform.m21 * box.min[1]
+        val g = transform.m02 * box.min[2]
+        val h = transform.m12 * box.min[2]
+        val i = transform.m22 * box.min[2]
+        val j = transform.m00 * box.max[0]
+        val k = transform.m10 * box.max[0]
+        val l = transform.m20 * box.max[0]
+        val m = transform.m01 * box.max[1]
+        val n = transform.m11 * box.max[1]
+        val o = transform.m21 * box.max[1]
+        val p = transform.m02 * box.max[2]
+        val q = transform.m12 * box.max[2]
+        val r = transform.m22 * box.max[2]
         aggregate(a + m + g + transform.m03, b + n + h + transform.m13, c + o + i + transform.m23)
         aggregate(j + m + g + transform.m03, k + n + h + transform.m13, l + o + i + transform.m23)
         aggregate(j + d + g + transform.m03, k + e + h + transform.m13, l + f + i + transform.m23)
@@ -74,5 +81,6 @@ data class Aabb(private var min: Vector3 = Vector3.POSITIVE_INFINITY, private va
         aggregate(j + m + p + transform.m03, k + n + q + transform.m13, l + o + r + transform.m23)
         aggregate(j + d + p + transform.m03, k + e + q + transform.m13, l + f + r + transform.m23)
         aggregate(a + d + p + transform.m03, b + e + q + transform.m13, c + f + r + transform.m23)
+        return this
     }
 }
