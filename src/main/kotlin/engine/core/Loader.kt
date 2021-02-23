@@ -62,7 +62,7 @@ object Loader {
                 }
             }
         }
-        factory.compile()
+        factory.build()
     }
 
     private suspend fun readMaterials(path: String, filename: String) = coroutineScope {

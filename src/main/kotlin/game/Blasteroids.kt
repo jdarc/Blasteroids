@@ -26,6 +26,7 @@ import engine.graph.Scene
 import engine.math.Matrix4
 import engine.math.Scalar
 import engine.math.Vector3
+import engine.tools.Scheduler
 import engine.webgl.WebGL2RenderingContext
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope

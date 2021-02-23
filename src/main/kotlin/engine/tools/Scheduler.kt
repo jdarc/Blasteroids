@@ -17,7 +17,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.core
+package engine.tools
 
 class Scheduler {
     private val processed = mutableListOf<CommandWrapper>()

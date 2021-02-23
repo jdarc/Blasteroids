@@ -22,7 +22,7 @@ package game
 import engine.core.Color
 import engine.core.Material
 import engine.core.Primitives
-import engine.core.Scheduler
+import engine.tools.Scheduler
 import engine.graph.BranchNode
 import engine.graph.MaterialNode
 import engine.io.Keyboard

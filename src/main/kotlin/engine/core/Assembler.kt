@@ -19,6 +19,7 @@
 
 package engine.core
 
+import engine.graph.Geometry
 import engine.math.Vector2
 import engine.math.Vector3
 
@@ -54,22 +55,23 @@ class Assembler {
         faces.add(Face(v, vn, vt, currentMaterial))
     }
 
-    fun compile(type: AssemblyType = AssemblyType.Model) = when (type) {
-        AssemblyType.Mesh -> {
-            val count = Mesh.VERTICES_PER_FACE * Mesh.ELEMENTS_PER_VERTEX
-            val buffer = FloatArray(faces.size * count)
-            faces.forEachIndexed { index, face -> pack(face).copyInto(buffer, index * count) }
-            Mesh(buffer, faces.size * Mesh.VERTICES_PER_FACE)
-        }
-        AssemblyType.Model -> {
-            val count = Mesh.VERTICES_PER_FACE * Mesh.ELEMENTS_PER_VERTEX
-            val groups = mutableMapOf<Material, Mesh>()
-            for ((material, faces) in faces.groupBy { it.material }.toMap()) {
+    fun build(type: BuildType = BuildType.Model): Geometry {
+        val count = Mesh.VERTICES_PER_FACE * Mesh.ELEMENTS_PER_VERTEX
+        return when (type) {
+            BuildType.Mesh -> {
                 val buffer = FloatArray(faces.size * count)
                 faces.forEachIndexed { index, face -> pack(face).copyInto(buffer, index * count) }
-                groups[materials[material]!!] = Mesh(buffer, faces.size * Mesh.VERTICES_PER_FACE)
+                Mesh(buffer, buffer.size / Mesh.ELEMENTS_PER_VERTEX)
             }
-            Model(groups)
+            BuildType.Model -> {
+                val groups = mutableMapOf<Material, Mesh>()
+                for ((material, faces) in faces.groupBy { it.material }.toMap()) {
+                    val buffer = FloatArray(faces.size * count)
+                    faces.forEachIndexed { index, face -> pack(face).copyInto(buffer, index * count) }
+                    groups[materials[material]!!] = Mesh(buffer, buffer.size / Mesh.ELEMENTS_PER_VERTEX)
+                }
+                Model(groups)
+            }
         }
     }
 

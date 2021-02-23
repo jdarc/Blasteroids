@@ -17,8 +17,9 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.core
+package engine.tools
 
+import engine.core.Camera
 import engine.io.Keyboard
 import engine.io.Keys
 import engine.io.Mouse
@@ -43,10 +44,8 @@ class FirstPersonControl(private val camera: Camera) {
         }
 
         val moveRate = seconds * moveFactor
-        if (keyboard.isKeyDown(Keys.W)) camera.moveForward(moveRate)
-        else if (keyboard.isKeyDown(Keys.S)) camera.moveBackward(moveRate)
-        if (keyboard.isKeyDown(Keys.A)) camera.moveLeft(moveRate)
-        else if (keyboard.isKeyDown(Keys.D)) camera.moveRight(moveRate)
+        if (keyboard.isKeyDown(Keys.W)) camera.moveForward(moveRate) else if (keyboard.isKeyDown(Keys.S)) camera.moveBackward(moveRate)
+        if (keyboard.isKeyDown(Keys.A)) camera.moveLeft(moveRate) else if (keyboard.isKeyDown(Keys.D)) camera.moveRight(moveRate)
 
         mouseX = mouse.x
         mouseY = mouse.y

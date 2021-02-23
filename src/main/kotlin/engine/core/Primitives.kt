@@ -46,7 +46,7 @@ object Primitives {
         assembler.addFace(intArrayOf(0, 1, 2), intArrayOf(0, 0, 0), intArrayOf(0, 1, 2))
         assembler.addFace(intArrayOf(2, 3, 0), intArrayOf(0, 0, 0), intArrayOf(2, 3, 0))
 
-        return assembler.compile(AssemblyType.Mesh) as Mesh
+        return assembler.build(BuildType.Mesh) as Mesh
     }
 
     fun createCube(size: Float): Mesh {
@@ -88,7 +88,7 @@ object Primitives {
         assembler.addFace(intArrayOf(3, 2, 7), intArrayOf(5, 5, 5), intArrayOf(0, 1, 2))
         assembler.addFace(intArrayOf(7, 6, 3), intArrayOf(5, 5, 5), intArrayOf(2, 3, 0))
 
-        return assembler.compile(AssemblyType.Mesh) as Mesh
+        return assembler.build(BuildType.Mesh) as Mesh
     }
 
     fun createSphere(radius: Float, stacks: Int, slices: Int): Mesh {
@@ -121,6 +121,6 @@ object Primitives {
             }
         }
 
-        return assembler.compile(AssemblyType.Mesh) as Mesh
+        return assembler.build(BuildType.Mesh) as Mesh
     }
 }

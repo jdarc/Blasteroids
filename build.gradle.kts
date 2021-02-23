@@ -3,13 +3,11 @@ plugins {
 }
 
 repositories {
-    jcenter()
     mavenCentral()
 }
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
-    testImplementation(kotlin("test-js"))
 }
 
 kotlin {
