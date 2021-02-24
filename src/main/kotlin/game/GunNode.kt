@@ -46,19 +46,17 @@ class GunNode(private val scheduler: Scheduler, transform: Matrix4) : BranchNode
         if (timer - last < fireRate) return
         root?.apply {
             val missile = spawnMissile()
+            scheduler.schedule(2F) { remove(missile) }
             add(missile)
-            scheduler.schedule(1F) { remove(missile) }
         }
         last = timer
     }
 
     private fun spawnMissile(): BranchNode {
-        val position = Vector3(worldTransform.m03, worldTransform.m13, worldTransform.m23)
-        val velocity = Vector3(-worldTransform.m10, worldTransform.m00, 0F) * speed
-        return MaterialNode(MISSILE_MATERIAL).add(MissileNode(MISSILE).apply {
-            particle.position = position
-            particle.velocity = velocity
-        })
+        val missileNode = MissileNode(MISSILE)
+        missileNode.particle.position = worldPosition
+        missileNode.particle.velocity = Vector3(-worldTransform.m10, worldTransform.m00, 0F) * speed
+        return MaterialNode(MISSILE_MATERIAL).add(missileNode)
     }
 
     private companion object {

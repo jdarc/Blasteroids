@@ -19,51 +19,49 @@
 
 package engine.tools
 
+
 class Scheduler {
-    private val processed = mutableListOf<Command>()
-    private val commands = mutableListOf<Command>()
+    private val rescheduled = mutableListOf<ScheduledCommand>()
+    private val processed = mutableListOf<ScheduledCommand>()
+    private val commands = mutableListOf<ScheduledCommand>()
     private var clock = 0F
 
-    fun schedule(delay: Float, command: () -> Unit) {
-        commands.add(ScheduledCommand((clock + delay).coerceAtLeast(0F), command))
-    }
+    fun schedule(delay: Float, command: () -> Unit) = schedule(0F, 0F, delay, command)
 
-    fun every(every: Float, until: Float, command: () -> Unit) {
-        commands.add(RepeatingCommand((clock + every), every, until, command))
+    fun schedule(every: Float, duration: Float, delay: Float = every, command: () -> Unit) {
+        commands.add(RepeatingCommand((clock + delay).coerceAtLeast(0F), every, clock + duration, command))
     }
 
     fun update(timeStep: Float) {
         clock += timeStep
 
-        commands.fold(processed) { dst, command -> if (command.execute(clock)) dst.add(command); dst }
-        commands.removeAll(processed)
+        commands.forEach {
+            if (it.executes(clock)) {
+                processed.add(it)
+                if (it.repeats(clock)) rescheduled.add(it.build(clock))
+            }
+        }
 
-        processed.forEach { if (it.repeats(clock) && it is RepeatingCommand) every(it.every, it.until, it.command) }
+        commands.apply {
+            removeAll(processed)
+            addAll(rescheduled)
+        }
+
         processed.clear()
+        rescheduled.clear()
     }
 
     private companion object {
-        interface Command {
-            fun execute(clock: Float): Boolean
-            fun repeats(clock: Float): Boolean
+        open class ScheduledCommand(val at: Float, val command: () -> Unit) {
+            fun executes(clock: Float) = (at <= clock).apply { if (this) command() }
+
+            open fun repeats(clock: Float) = false
+            open fun build(clock: Float) = ScheduledCommand(clock + at, command)
         }
 
-        data class ScheduledCommand(val at: Float, val command: () -> Unit) : Command {
-            override fun execute(clock: Float) = if (at <= clock) {
-                command()
-                true
-            } else false
-
-            override fun repeats(clock: Float) = false
-        }
-
-        data class RepeatingCommand(val at: Float, val every: Float, val until: Float, val command: () -> Unit) : Command {
-            override fun execute(clock: Float) = if (at <= clock) {
-                command()
-                true
-            } else false
-
+        class RepeatingCommand(at: Float, val every: Float, val until: Float, command: () -> Unit) : ScheduledCommand(at, command) {
             override fun repeats(clock: Float) = clock < until
+            override fun build(clock: Float) = RepeatingCommand((clock + every), every, until, command)
         }
     }
 }

@@ -1,29 +1,45 @@
 package game
 
+import engine.core.Camera
 import engine.graph.BranchNode
+import engine.math.Frustum
 import engine.math.Matrix4
+import engine.math.Ray
 import engine.math.Vector3
 import engine.physics.Particle
 import kotlin.random.Random
 
-class AsteroidNode : BranchNode() {
+class AsteroidNode(private val camera: Camera) : BranchNode() {
     private val particle = Particle().apply {
-        position = random(1F, 1F, 0F) * 20F
-        velocity = random(1F, 1F, 0F)
+        position = random(1F, 1F, 0F) * 25F
+        velocity = random(1F, 1F, 0F) * Random.nextFloat() * 10F
     }
-    private var size = 2F + Random.nextFloat() * 8F
-    private var yaw = Random.nextDouble(-3.0, 3.0).toFloat()
-    private var roll = Random.nextDouble(-3.0, 3.0).toFloat()
-    private var speed = (Random.nextDouble() + 0.1).toFloat() / 30F
-    private var speed2 = (Random.nextDouble() + 0.1).toFloat() / 30F
+    private var roll = 0F
+    private val axis = random()
+    private val speed = 1F + Random.nextFloat() * 3F
+    private val size = 1F + Random.nextFloat() * 5F
 
     override fun update(seconds: Float): Boolean {
         particle.integrate(seconds)
-        roll += speed
-        yaw += speed2
-        val rotation = Matrix4.createFromYawPitchRoll(yaw, 0F, roll)
+        roll += speed * seconds
+        val rotation = Matrix4.createFromAxisAngle(axis, roll)
         localTransform = Matrix4.create(particle.position, rotation, Vector3(size))
+        wrapAround()
         return super.update(seconds)
+    }
+
+    private fun wrapAround() {
+        val frustum = Frustum(camera)
+        if (!frustum.contains(worldBounds)) {
+            val top = frustum.intersect(Ray(Vector3.ZERO, Vector3.UNIT_Y))
+            val right = frustum.intersect(Ray(Vector3.ZERO, Vector3.UNIT_X))
+            val bot = frustum.intersect(Ray(Vector3.ZERO, -Vector3.UNIT_Y))
+            val left = frustum.intersect(Ray(Vector3.ZERO, -Vector3.UNIT_X))
+            var (x, y, z) = particle.position
+            if (x < left.x) x = right.x else if (x > right.x) x = left.x
+            if (y < bot.y) y = top.y else if (y > top.y) y = bot.y
+            particle.position = Vector3(x, y, z)
+        }
     }
 
     companion object {

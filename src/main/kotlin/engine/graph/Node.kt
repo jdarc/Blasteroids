@@ -78,4 +78,6 @@ abstract class Node(transform: Matrix4 = Matrix4.IDENTITY) {
         )
         return this
     }
+
+    val worldPosition get() = Vector3(worldTransform.m03, worldTransform.m13, worldTransform.m23)
 }

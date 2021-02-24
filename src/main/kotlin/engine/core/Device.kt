@@ -29,8 +29,10 @@ import kotlinx.browser.window
 import kotlinx.coroutines.await
 import org.khronos.webgl.WebGLBuffer
 import org.khronos.webgl.WebGLTexture
+import org.w3c.dom.HTMLCanvasElement
 
-class Device(private val gl: WebGL2RenderingContext) : Renderer {
+class Device(canvas: HTMLCanvasElement) : Renderer {
+    private val gl = canvas.getContext("webgl2") as WebGL2RenderingContext
     private val buffers = mutableMapOf<FloatArray, WebGLBuffer>()
     private val textures = mutableMapOf<Texture, WebGLTexture>()
 

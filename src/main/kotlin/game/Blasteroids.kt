@@ -27,7 +27,6 @@ import engine.math.Matrix4
 import engine.math.Scalar
 import engine.math.Vector3
 import engine.tools.Scheduler
-import engine.webgl.WebGL2RenderingContext
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -36,8 +35,7 @@ import kotlin.random.Random
 
 @Suppress("SpellCheckingInspection")
 class Blasteroids(canvas: HTMLCanvasElement) : Game {
-    private val gl = canvas.getContext("webgl2") as WebGL2RenderingContext
-    private val device = Device(gl)
+    private val device = Device(canvas)
     private val scheduler = Scheduler()
     private val camera = Camera(fov = Scalar.PI / 8F)
     private var scene = Scene()
@@ -48,7 +46,7 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         camera.position = Vector3(0F, 0F, 120F)
         scene.backcolor = Color(0)
         scene.root.add(
-            LightNode(0, Color.WHITE).moveTo(Vector3(0F, 0F, 500F)),
+            LightNode(0, Color.WHITE).moveTo(Vector3(0F, 0F, 30F)),
             ShipNode(camera).add(
                 GunNode(scheduler, Matrix4.createTranslation(-1.7F, 0.9F, 0F)),
                 GunNode(scheduler, Matrix4.createTranslation(1.7F, 0.9F, 0F)),
@@ -56,8 +54,14 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
             )
         )
 
+        val rnd = Random(1973)
         val asteroid = Loader.read("models", "asteroid.obj")
-        scheduler.every(2F, 30F) { scene.root.add(AsteroidNode().add(LeafNode(asteroid))) }
+        val asteroid1 = Loader.read("models", "asteroid1.obj")
+        val asteroid2 = Loader.read("models", "asteroid2.obj")
+        val asteroids = arrayOf(asteroid, asteroid1, asteroid2)
+        scheduler.schedule(1F, 10F) {
+            scene.root.add(AsteroidNode(camera).add(LeafNode(asteroids[rnd.nextInt(0, asteroids.size)])))
+        }
         GameLoop(this).start()
     }
 
