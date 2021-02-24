@@ -32,6 +32,7 @@ import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
+import kotlin.random.Random
 
 @Suppress("SpellCheckingInspection")
 class Blasteroids(canvas: HTMLCanvasElement) : Game {
@@ -55,6 +56,8 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
             )
         )
 
+        val asteroid = Loader.read("models", "asteroid.obj")
+        scheduler.every(2F, 30F) { scene.root.add(AsteroidNode().add(LeafNode(asteroid))) }
         GameLoop(this).start()
     }
 

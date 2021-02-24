@@ -20,23 +20,50 @@
 package engine.tools
 
 class Scheduler {
-    private val processed = mutableListOf<CommandWrapper>()
-    private val commands = mutableListOf<CommandWrapper>()
+    private val processed = mutableListOf<Command>()
+    private val commands = mutableListOf<Command>()
     private var clock = 0F
 
     fun schedule(delay: Float, command: () -> Unit) {
-        commands.add(CommandWrapper((clock + delay).coerceAtLeast(0F), command))
+        commands.add(ScheduledCommand((clock + delay).coerceAtLeast(0F), command))
+    }
+
+    fun every(every: Float, until: Float, command: () -> Unit) {
+        commands.add(RepeatingCommand((clock + every), every, until, command))
     }
 
     fun update(timeStep: Float) {
         clock += timeStep
-        commands.fold(processed) { dst, wrapper -> if (wrapper.at <= clock) dst.add(wrapper); dst }
-        processed.forEach { it.command(); }
+
+        commands.fold(processed) { dst, command -> if (command.execute(clock)) dst.add(command); dst }
         commands.removeAll(processed)
+
+        processed.forEach { if (it.repeats(clock) && it is RepeatingCommand) every(it.every, it.until, it.command) }
         processed.clear()
     }
 
     private companion object {
-        data class CommandWrapper(val at: Float, val command: () -> Unit)
+        interface Command {
+            fun execute(clock: Float): Boolean
+            fun repeats(clock: Float): Boolean
+        }
+
+        data class ScheduledCommand(val at: Float, val command: () -> Unit) : Command {
+            override fun execute(clock: Float) = if (at <= clock) {
+                command()
+                true
+            } else false
+
+            override fun repeats(clock: Float) = false
+        }
+
+        data class RepeatingCommand(val at: Float, val every: Float, val until: Float, val command: () -> Unit) : Command {
+            override fun execute(clock: Float) = if (at <= clock) {
+                command()
+                true
+            } else false
+
+            override fun repeats(clock: Float) = clock < until
+        }
     }
 }
