@@ -30,7 +30,8 @@ class Scheduler {
 
     fun update(timeStep: Float) {
         clock += timeStep
-        commands.fold(processed) { dst, wrapper -> if (wrapper.at <= clock) wrapper.command(); dst.add(wrapper); dst }
+        commands.fold(processed) { dst, wrapper -> if (wrapper.at <= clock) dst.add(wrapper); dst }
+        processed.forEach { it.command(); }
         commands.removeAll(processed)
         processed.clear()
     }
