@@ -46,7 +46,7 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         camera.position = Vector3(0F, 0F, 120F)
         scene.backcolor = Color(0)
         scene.root.add(
-            LightNode(0, Color.WHITE).moveTo(Vector3(0F, 0F, 30F)),
+            LightNode(0, Color.WHITE).moveTo(Vector3(0F, 30F, 30F)),
             ShipNode(camera).add(
                 GunNode(scheduler, Matrix4.createTranslation(-1.7F, 0.9F, 0F)),
                 GunNode(scheduler, Matrix4.createTranslation(1.7F, 0.9F, 0F)),

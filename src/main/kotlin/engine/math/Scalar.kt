@@ -23,6 +23,7 @@ import org.khronos.webgl.Float32Array
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 @Suppress("unused")
 object Scalar {
@@ -39,6 +40,8 @@ object Scalar {
     fun toRadians(degrees: Float) = degrees * PI / 180F
 
     fun toDegrees(radians: Float) = radians * 180F / PI
+
+    fun random(from: Float = -1F, to: Float = 1F) = Random.nextDouble(from.toDouble(), to.toDouble()).toFloat()
 
     fun Float.sqr() = this.pow(2)
 

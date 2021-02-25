@@ -82,5 +82,8 @@ data class Vector3(val x: Float, val y: Float, val z: Float) {
             v.y.coerceIn(min, max),
             v.z.coerceIn(min, max)
         )
+
+        fun random(x: Float = 1F, y: Float = 1F, z: Float = 1F) =
+            normalize(Vector3(x * Scalar.random(), y * Scalar.random(), z * Scalar.random()))
     }
 }
