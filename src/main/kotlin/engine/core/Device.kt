@@ -23,7 +23,8 @@ import engine.graph.Renderer
 import engine.math.Matrix4
 import engine.math.Scalar.pack
 import engine.math.Vector3
-import engine.webgl.Glu
+import engine.webgl.Glu.createImageTexture
+import engine.webgl.Glu.createVertexBuffer
 import engine.webgl.WebGL2RenderingContext
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -77,9 +78,9 @@ class Device(canvas: HTMLCanvasElement) : Renderer {
             activeProgram.setShininess(field.shininess)
 
             val maps = field.textures
-            activeProgram.setAmbientTexture(textures.getOrPut(maps.ambient, { Glu.createImageTexture(gl, maps.ambient.source) }))
-            activeProgram.setDiffuseTexture(textures.getOrPut(maps.diffuse, { Glu.createImageTexture(gl, maps.diffuse.source) }))
-            activeProgram.setSpecularTexture(textures.getOrPut(maps.specular, { Glu.createImageTexture(gl, maps.specular.source) }))
+            activeProgram.setAmbientTexture(textures.getOrPut(maps.ambient, { gl.createImageTexture(maps.ambient.source) }))
+            activeProgram.setDiffuseTexture(textures.getOrPut(maps.diffuse, { gl.createImageTexture(maps.diffuse.source) }))
+            activeProgram.setSpecularTexture(textures.getOrPut(maps.specular, { gl.createImageTexture(maps.specular.source) }))
         }
 
     override var world = Matrix4.IDENTITY
@@ -120,7 +121,7 @@ class Device(canvas: HTMLCanvasElement) : Renderer {
     }
 
     override fun draw(data: FloatArray, count: Int) {
-        activeProgram.bindVertexBuffer(buffers.getOrPut(data, { Glu.createVertexBuffer(gl, data.pack()) }))
+        activeProgram.bindVertexBuffer(buffers.getOrPut(data, { gl.createVertexBuffer(data.pack()) }))
         gl.drawArrays(gl.TRIANGLES, 0, count)
     }
 

@@ -21,8 +21,8 @@ package engine.core
 
 import engine.math.Matrix4
 import engine.math.Vector3
-import engine.webgl.Glu
 import engine.webgl.Glu.bindTexture2D
+import engine.webgl.Glu.createProgramFromSource
 import engine.webgl.Glu.uniformColor
 import engine.webgl.Glu.uniformVec3
 import engine.webgl.WebGL2RenderingContext
@@ -32,7 +32,7 @@ import org.khronos.webgl.WebGLProgram
 import org.khronos.webgl.WebGLTexture
 
 class Program(private val gl: WebGL2RenderingContext, vertexShaderSrc: String, fragmentShaderSrc: String) {
-    private val shaderProgram = Glu.createProgramFromSource(gl, vertexShaderSrc, fragmentShaderSrc)
+    private val shaderProgram = gl.createProgramFromSource(vertexShaderSrc, fragmentShaderSrc)
 
     private val transformUniforms = TransformUniforms(gl, shaderProgram)
     private val colorUniforms = MaterialUniforms(gl, shaderProgram, "u_colors")

@@ -28,69 +28,58 @@ object Glu {
     var anisotropicExt: dynamic = null
     var anisotropicMax = -1F
 
-    fun compileShader(gl: WebGL2RenderingContext, shaderSource: String, shaderType: Int): WebGLShader {
-        val shader = gl.createShader(shaderType)
-        gl.shaderSource(shader, shaderSource)
-        gl.compileShader(shader)
-        val success = gl.getShaderParameter(shader, gl.COMPILE_STATUS) as Boolean
-        if (!success) throw RuntimeException("shader failed to compile: ${gl.getShaderInfoLog(shader)}")
+    fun WebGL2RenderingContext.compileShader(shaderSource: String, shaderType: Int): WebGLShader {
+        val shader = createShader(shaderType)
+        shaderSource(shader, shaderSource)
+        compileShader(shader)
+        val success = getShaderParameter(shader, COMPILE_STATUS) as Boolean
+        if (!success) throw RuntimeException("shader failed to compile: ${getShaderInfoLog(shader)}")
         return shader ?: throw RuntimeException("failed to create shader")
     }
 
-    fun createProgram(gl: WebGL2RenderingContext, vertexShader: WebGLShader, fragmentShader: WebGLShader): WebGLProgram {
-        val program = gl.createProgram()
-        gl.attachShader(program, vertexShader)
-        gl.attachShader(program, fragmentShader)
-        gl.linkProgram(program)
-        val success = gl.getProgramParameter(program, gl.LINK_STATUS) as Boolean
-        if (!success) throw RuntimeException("program failed to link: ${gl.getProgramInfoLog(program)}")
+    fun WebGL2RenderingContext.createProgram(vertexShader: WebGLShader, fragmentShader: WebGLShader): WebGLProgram {
+        val program = createProgram()
+        attachShader(program, vertexShader)
+        attachShader(program, fragmentShader)
+        linkProgram(program)
+        val success = getProgramParameter(program, LINK_STATUS) as Boolean
+        if (!success) throw RuntimeException("program failed to link: ${getProgramInfoLog(program)}")
         return program ?: throw RuntimeException("failed to create program")
     }
 
-    fun createProgramFromSource(gl: WebGL2RenderingContext, vertexSource: String, fragmentSource: String): WebGLProgram {
-        val vs = compileShader(gl, vertexSource, gl.VERTEX_SHADER)
-        val fs = compileShader(gl, fragmentSource, gl.FRAGMENT_SHADER)
-        return createProgram(gl, vs, fs)
+    fun WebGL2RenderingContext.createProgramFromSource(vertexSource: String, fragmentSource: String): WebGLProgram {
+        val vs = compileShader(vertexSource, VERTEX_SHADER)
+        val fs = compileShader(fragmentSource, FRAGMENT_SHADER)
+        return createProgram(vs, fs)
     }
 
-    fun createImageTexture(gl: WebGL2RenderingContext, image: TexImageSource): WebGLTexture {
-        val texture = gl.createTexture()
-        gl.bindTexture(gl.TEXTURE_2D, texture)
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-        gl.generateMipmap(gl.TEXTURE_2D)
-        configureAnisotropic(gl)
+    fun WebGL2RenderingContext.createImageTexture(image: TexImageSource): WebGLTexture {
+        val texture = createTexture()
+        bindTexture(TEXTURE_2D, texture)
+        pixelStorei(UNPACK_FLIP_Y_WEBGL, 1)
+        texImage2D(TEXTURE_2D, 0, RGBA, RGBA, UNSIGNED_BYTE, image)
+        texParameteri(TEXTURE_2D, TEXTURE_MAG_FILTER, LINEAR)
+        texParameteri(TEXTURE_2D, TEXTURE_MIN_FILTER, LINEAR_MIPMAP_LINEAR)
+        texParameteri(TEXTURE_2D, TEXTURE_WRAP_S, REPEAT)
+        texParameteri(TEXTURE_2D, TEXTURE_WRAP_T, REPEAT)
+        generateMipmap(TEXTURE_2D)
+        configureAnisotropic(this)
         return texture ?: throw RuntimeException("failed to create image texture")
     }
 
-    fun extractAttributeLocations(gl: WebGL2RenderingContext, program: WebGLProgram): Map<String, Int> {
-        val result = mutableMapOf<String, Int>()
-        val count = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES) as Int
-        for (i in 0 until count) {
-            val info = gl.getActiveAttrib(program, i)!!
-            result[info.name] = gl.getAttribLocation(program, info.name)
-        }
-        return result
+    fun WebGL2RenderingContext.extractAttributeLocations(program: WebGLProgram) =
+        (0 until getProgramParameter(program, ACTIVE_ATTRIBUTES) as Int).map { getActiveAttrib(program, it) }
+            .requireNoNulls().associateBy({ it.name }, { getAttribLocation(program, it.name) })
+
+    fun WebGL2RenderingContext.extractUniformLocations(program: WebGLProgram): Map<String, WebGLUniformLocation> {
+        return (0 until getProgramParameter(program, ACTIVE_UNIFORMS) as Int).map { getActiveUniform(program, it) }
+            .requireNoNulls().associateBy({ it.name }, { getUniformLocation(program, it.name)!! })
     }
 
-    fun extractUniformLocations(gl: WebGL2RenderingContext, program: WebGLProgram): Map<String, WebGLUniformLocation> {
-        val result = mutableMapOf<String, WebGLUniformLocation>()
-        val count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS) as Int
-        for (i in 0 until count) {
-            val info = gl.getActiveUniform(program, i)!!
-            result[info.name] = gl.getUniformLocation(program, info.name)!!
-        }
-        return result
-    }
-
-    fun createVertexBuffer(gl: WebGL2RenderingContext, data: Float32Array): WebGLBuffer {
-        val buffer = gl.createBuffer()
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-        gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW)
+    fun WebGL2RenderingContext.createVertexBuffer(data: Float32Array): WebGLBuffer {
+        val buffer = createBuffer()
+        bindBuffer(ARRAY_BUFFER, buffer)
+        bufferData(ARRAY_BUFFER, data, STATIC_DRAW)
         return buffer ?: throw RuntimeException("failed to create buffer")
     }
 
