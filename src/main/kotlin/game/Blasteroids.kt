@@ -20,10 +20,11 @@
 package game
 
 import engine.core.*
+import engine.graph.BranchNode
 import engine.graph.LeafNode
-import engine.graph.LightNode
 import engine.graph.Scene
-import engine.math.Matrix4
+import engine.graph.components.LightComponent
+import engine.graph.components.WrapAroundComponent
 import engine.math.Scalar
 import engine.math.Vector3
 import engine.tools.Scheduler
@@ -35,6 +36,7 @@ import kotlin.random.Random
 
 @Suppress("SpellCheckingInspection")
 class Blasteroids(canvas: HTMLCanvasElement) : Game {
+    private val rnd = Random(1973)
     private val device = Device(canvas)
     private val scheduler = Scheduler()
     private val camera = Camera(fov = Scalar.PI / 8F)
@@ -45,23 +47,23 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         device.initialize()
         camera.position = Vector3(0F, 0F, 120F)
         scene.backcolor = Color(0)
-        scene.root.add(
-            LightNode(0, Color.WHITE).moveTo(Vector3(0F, 30F, 30F)),
-            ShipNode(camera).add(
-                GunNode(scheduler, Matrix4.createTranslation(-1.7F, 0.9F, 0F)),
-                GunNode(scheduler, Matrix4.createTranslation(1.7F, 0.9F, 0F)),
-                LeafNode(Loader.read("models", "fighter.obj"))
-            )
-        )
 
-        val rnd = Random(1973)
-        val asteroid = Loader.read("models", "asteroid.obj")
-        val asteroid1 = Loader.read("models", "asteroid1.obj")
-        val asteroid2 = Loader.read("models", "asteroid2.obj")
-        val asteroids = arrayOf(asteroid, asteroid1, asteroid2)
-        scheduler.schedule(1F, 10F) {
-            scene.root.add(AsteroidNode(camera).add(LeafNode(asteroids[rnd.nextInt(0, asteroids.size)])))
+        val asteroid1Geometry = Loader.read("models", "asteroid1.obj")
+        val asteroid2Geometry = Loader.read("models", "asteroid2.obj")
+        val asteroids = arrayOf(asteroid1Geometry, asteroid2Geometry)
+        val shipGeometry = LeafNode(Loader.read("models", "fighter.obj"))
+        val wrapComponent = WrapAroundComponent()
+
+        val arena = BranchNode()
+        scene.root.add(arena)
+
+        arena.add(LightComponent(0, Color.WHITE, Vector3(0F, 30F, 20F)))
+        arena.add(ShipNode(shipGeometry, scheduler).add(wrapComponent))
+
+        scheduler.schedule(0.1F, 1F) {
+            arena.add(AsteroidNode().add(LeafNode(asteroids[rnd.nextInt(0, asteroids.size)])).add(wrapComponent))
         }
+
         GameLoop(this).start()
     }
 

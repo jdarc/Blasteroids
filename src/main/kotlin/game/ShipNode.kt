@@ -19,14 +19,17 @@
 
 package game
 
-import engine.core.Camera
 import engine.graph.BranchNode
+import engine.graph.LeafNode
 import engine.io.Keyboard
 import engine.io.Keys
-import engine.math.*
+import engine.math.Matrix4
+import engine.math.Scalar
+import engine.math.Vector3
 import engine.physics.Particle
+import engine.tools.Scheduler
 
-class ShipNode(private val camera: Camera) : BranchNode() {
+class ShipNode(shipGeometry: LeafNode, scheduler: Scheduler) : BranchNode() {
     private var angularSpeed = Scalar.PI
     private var thrustSpeed = 20F
     private var radians = 0F
@@ -42,29 +45,20 @@ class ShipNode(private val camera: Camera) : BranchNode() {
         val rotation = Matrix4.createRotationZ(radians)
 
         particle.clearForces()
-        if (keyboard.isKeyDown(Keys.Up)) {
-            particle.addForce(rotation * Vector3(0F, thrustSpeed, 0F))
-        }
+
+        if (keyboard.isKeyDown(Keys.Up)) particle.addForce(rotation * Vector3(0F, thrustSpeed, 0F))
+
+        particle.position = position
         particle.integrate(seconds)
 
         localTransform = Matrix4.create(particle.position, rotation, Vector3.ONE)
 
-        wrapAround()
-
         return super.update(seconds)
     }
 
-    private fun wrapAround() {
-        val frustum = Frustum(camera)
-        if (!frustum.contains(worldBounds)) {
-            val top = frustum.intersect(Ray(Vector3.ZERO, Vector3.UNIT_Y))
-            val right = frustum.intersect(Ray(Vector3.ZERO, Vector3.UNIT_X))
-            val bot = frustum.intersect(Ray(Vector3.ZERO, -Vector3.UNIT_Y))
-            val left = frustum.intersect(Ray(Vector3.ZERO, -Vector3.UNIT_X))
-            var (x, y, z) = particle.position
-            if (x < left.x) x = right.x else if (x > right.x) x = left.x
-            if (y < bot.y) y = top.y else if (y > top.y) y = bot.y
-            particle.position = Vector3(x, y, z)
-        }
+    init {
+        val gun1Node = GunNode(scheduler, Matrix4.createTranslation(-1.7F, 0.9F, 0F))
+        val gun2Node = GunNode(scheduler, Matrix4.createTranslation(1.7F, 0.9F, 0F))
+        add(gun1Node, gun2Node, shipGeometry)
     }
 }

@@ -17,13 +17,34 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package engine.graph.components
 
-import engine.core.Material
+import engine.graph.Component
+import engine.graph.Node
+import engine.graph.Renderer
+import engine.math.Frustum
+import engine.math.Ray
+import engine.math.Vector3
 
-class MaterialNode(private val material: Material) : BranchNode() {
-    override fun render(renderer: Renderer): Boolean {
-        renderer.material = material
-        return true
+class WrapAroundComponent : Component() {
+
+    override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
+        if (!frustum.contains(node.worldBounds)) {
+            var (x, y, z) = node.worldPosition
+            val top = frustum.intersect(RAY_UP)
+            val left = frustum.intersect(RAY_LEFT)
+            val right = frustum.intersect(RAY_RIGHT)
+            val bottom = frustum.intersect(RAY_DOWN)
+            if (x < left.x) x = right.x else if (x > right.x) x = left.x
+            if (y < bottom.y) y = top.y else if (y > top.y) y = bottom.y
+            node.position = Vector3(x, y, z)
+        }
+    }
+
+    private companion object {
+        val RAY_LEFT = Ray(Vector3.ZERO, -Vector3.UNIT_X)
+        val RAY_RIGHT = Ray(Vector3.ZERO, Vector3.UNIT_X)
+        val RAY_DOWN = Ray(Vector3.ZERO, -Vector3.UNIT_Y)
+        val RAY_UP = Ray(Vector3.ZERO, Vector3.UNIT_Y)
     }
 }

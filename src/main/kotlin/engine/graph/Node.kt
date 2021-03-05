@@ -25,6 +25,8 @@ import engine.math.Matrix4
 import engine.math.Vector3
 
 abstract class Node(transform: Matrix4 = Matrix4.IDENTITY) {
+    private val components = mutableListOf<Component>()
+
     var localTransform = transform
     var worldTransform = Matrix4.IDENTITY
 
@@ -32,6 +34,18 @@ abstract class Node(transform: Matrix4 = Matrix4.IDENTITY) {
     val worldBounds = Aabb()
 
     fun isContainedBy(frustum: Frustum) = frustum.contains(worldBounds)
+
+    var position
+        get() = Vector3(localTransform.m03, localTransform.m13, localTransform.m23)
+        set(value) {
+            localTransform = Matrix4.createTranslation(value - position) * localTransform
+        }
+
+    var worldPosition
+        get() = Vector3(worldTransform.m03, worldTransform.m13, worldTransform.m23)
+        set(value) {
+            worldTransform = Matrix4.createTranslation(value - worldPosition) * worldTransform
+        }
 
     var parent: BranchNode? = null
         set(value) {
@@ -50,13 +64,23 @@ abstract class Node(transform: Matrix4 = Matrix4.IDENTITY) {
             return root
         }
 
-    open fun traverseDown(visitor: (Node) -> Boolean) {
-        visitor(this)
+    fun add(vararg components: Component): Node {
+        this.components.addAll(components)
+        return this
     }
 
-    open fun traverseUp(visitor: (Node) -> Unit) {
-        visitor(this)
+    fun remove(vararg components: Component): Node {
+        this.components.removeAll(components)
+        return this
     }
+
+    open fun traverseDown(visitor: (Node) -> Boolean, pre: (Node) -> Unit = {},  post: (Node) -> Unit = {}) {
+        pre(this)
+        visitor(this)
+        post(this)
+    }
+
+    open fun traverseUp(visitor: (Node) -> Unit) = visitor(this)
 
     open fun updateTransform() {
         worldTransform = (parent?.worldTransform ?: Matrix4.IDENTITY) * localTransform
@@ -68,16 +92,11 @@ abstract class Node(transform: Matrix4 = Matrix4.IDENTITY) {
 
     open fun render(renderer: Renderer) = true
 
-    fun moveTo(position: Vector3): Node {
-        val local = localTransform
-        localTransform = Matrix4(
-            local.m00, local.m10, local.m20, local.m30,
-            local.m01, local.m11, local.m21, local.m31,
-            local.m02, local.m12, local.m22, local.m32,
-            position.x, position.y, position.z, local.m33
-        )
-        return this
-    }
+    fun preUpdate(seconds: Float) = components.forEach { it.preUpdate(seconds, this) }
 
-    val worldPosition get() = Vector3(worldTransform.m03, worldTransform.m13, worldTransform.m23)
+    fun postUpdate(seconds: Float) = components.forEach { it.postUpdate(seconds, this) }
+
+    fun preRender(frustum: Frustum, renderer: Renderer) = components.forEach { it.preRender(frustum, renderer, this) }
+
+    fun postRender(frustum: Frustum, renderer: Renderer) = components.forEach { it.postRender(frustum, renderer, this) }
 }

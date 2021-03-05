@@ -19,14 +19,15 @@
 
 package game
 
-import engine.tools.Scheduler
 import engine.graph.BranchNode
 import engine.io.Keyboard
 import engine.io.Keys
 import engine.math.Matrix4
 import engine.math.Vector3
+import engine.tools.Scheduler
 
 class GunNode(private val scheduler: Scheduler, transform: Matrix4) : BranchNode(transform) {
+    private val arena by lazy { root?.get(0) as BranchNode }
     private var fireRate = 0.1F
     private var timer = 0F
     private var last = 0F
@@ -39,14 +40,10 @@ class GunNode(private val scheduler: Scheduler, transform: Matrix4) : BranchNode
 
     private fun fire() {
         if (timer - last < fireRate) return
-        val position = worldPosition
-        val velocity = Vector3(-worldTransform.m10, worldTransform.m00, 0F)
-        root?.apply {
-            val missile = MissileNode.build()
-            missile.fire(position, velocity)
-            scheduler.schedule(2F) { remove(missile) }
-            add(missile)
-        }
+        val missile = MissileNode.build()
+        missile.fire(worldPosition, Vector3(-worldTransform.m10, worldTransform.m00, 0F))
+        arena.add(missile)
+        scheduler.schedule(2F) { remove(missile) }
         last = timer
     }
 }

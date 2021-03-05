@@ -27,6 +27,8 @@ open class BranchNode(transform: Matrix4 = Matrix4.IDENTITY) : Node(transform) {
 
     override val localBounds get() = children.fold(Aabb(), { dst, src -> dst.aggregate(src.localBounds) })
 
+    operator fun get(index: Int) = children[index]
+
     fun add(vararg nodes: Node): BranchNode {
         nodes.forEach {
             if (it != this && it !in children) {
@@ -47,9 +49,10 @@ open class BranchNode(transform: Matrix4 = Matrix4.IDENTITY) : Node(transform) {
         return this
     }
 
-    override fun traverseDown(visitor: (Node) -> Boolean) {
-        if (!visitor(this)) return
-        children.forEach { it.traverseDown(visitor) }
+    override fun traverseDown(visitor: (Node) -> Boolean, pre: (Node) -> Unit, post: (Node) -> Unit) {
+        pre(this)
+        if (visitor(this)) children.forEach { it.traverseDown(visitor, pre, post) }
+        post(this)
     }
 
     override fun traverseUp(visitor: (Node) -> Unit) {

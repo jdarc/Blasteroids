@@ -32,22 +32,33 @@ class Scene {
     }
 
     fun update(seconds: Float) {
-        root.traverseDown {
-            it.update(seconds)
-            it.updateTransform()
-            true
-        }
+        root.traverseDown(
+            {
+                it.update(seconds)
+                it.updateTransform()
+                true
+            },
+            { it.preUpdate(seconds) },
+            { it.postUpdate(seconds) }
+        )
+
         root.traverseUp { it.updateWorldBounds() }
     }
 
     fun render(camera: Camera, renderer: Renderer) {
         renderer.resize()
         camera.aspectRatio = renderer.aspectRatio
+
         renderer.view = camera.view
         renderer.projection = camera.projection
 
         renderer.clear(backcolor)
 
-        Frustum(camera).run { root.traverseDown { it.isContainedBy(this).apply { it.render(renderer) } } }
+        val frustum = Frustum(camera)
+        root.traverseDown(
+            { it.isContainedBy(frustum).apply { it.render(renderer) } },
+            { it.preRender(frustum, renderer) },
+            { it.postRender(frustum, renderer) }
+        )
     }
 }

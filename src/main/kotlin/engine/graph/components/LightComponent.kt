@@ -17,17 +17,28 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.core
+package engine.graph.components
 
-class Material(val name: String = anonymous()) {
-    val colors = Colors()
-    val textures = Textures()
-    var shininess = 30F
+import engine.core.Color
+import engine.graph.Component
+import engine.graph.Node
+import engine.graph.Renderer
+import engine.math.Frustum
+import engine.math.Vector3
 
-    companion object {
-        val DEFAULT = Material("")
+class LightComponent(val index: Int, var color: Color, var position: Vector3 = Vector3.ZERO) : Component() {
+    var emitting = true
 
-        private var uid = 0
-        private fun anonymous() = "Material::${uid++}"
+    override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
+        val light = renderer.lights[index]
+        if (emitting) {
+            light.on = true
+            light.color = color
+            light.position = position + Vector3(node.worldTransform.m03, node.worldTransform.m13, node.worldTransform.m23)
+        }
+    }
+
+    override fun postRender(frustum: Frustum, renderer: Renderer, node: Node) {
+        renderer.lights[index].on = false
     }
 }
