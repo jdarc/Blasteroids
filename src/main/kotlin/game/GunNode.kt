@@ -19,12 +19,8 @@
 
 package game
 
-import engine.core.Color
-import engine.core.Material
-import engine.core.Primitives
 import engine.tools.Scheduler
 import engine.graph.BranchNode
-import engine.graph.MaterialNode
 import engine.io.Keyboard
 import engine.io.Keys
 import engine.math.Matrix4
@@ -32,7 +28,6 @@ import engine.math.Vector3
 
 class GunNode(private val scheduler: Scheduler, transform: Matrix4) : BranchNode(transform) {
     private var fireRate = 0.1F
-    private var speed = 50F
     private var timer = 0F
     private var last = 0F
 
@@ -44,26 +39,14 @@ class GunNode(private val scheduler: Scheduler, transform: Matrix4) : BranchNode
 
     private fun fire() {
         if (timer - last < fireRate) return
+        val position = worldPosition
+        val velocity = Vector3(-worldTransform.m10, worldTransform.m00, 0F)
         root?.apply {
-            val missile = spawnMissile()
+            val missile = MissileNode.build()
+            missile.fire(position, velocity)
             scheduler.schedule(2F) { remove(missile) }
             add(missile)
         }
         last = timer
-    }
-
-    private fun spawnMissile(): BranchNode {
-        val missileNode = MissileNode(MISSILE)
-        missileNode.particle.position = worldPosition
-        missileNode.particle.velocity = Vector3(-worldTransform.m10, worldTransform.m00, 0F) * speed
-        return MaterialNode(MISSILE_MATERIAL).add(missileNode)
-    }
-
-    private companion object {
-        val MISSILE_MATERIAL = Material("missile").apply {
-            colors.diffuse = Color.RED
-            colors.specular = Color.WHITE
-        }
-        val MISSILE = Primitives.createSphere(0.2F, 8, 8)
     }
 }
