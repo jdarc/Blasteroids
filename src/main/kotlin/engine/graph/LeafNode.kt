@@ -23,14 +23,14 @@ import engine.math.Matrix4
 
 open class LeafNode(private val geometry: Geometry, transform: Matrix4 = Matrix4.IDENTITY) : Node(transform) {
 
-    override val localBounds = geometry.bounds
+    override val bounds = geometry.bounds
 
-    override fun updateWorldBounds() {
-        worldBounds.reset().aggregate(localBounds, worldTransform)
+    override fun aggregateBounds() {
+        aggregatedBounds.reset().aggregate(bounds, combinedTransform)
     }
 
     override fun render(renderer: Renderer): Boolean {
-        renderer.world = worldTransform
+        renderer.world = combinedTransform
         geometry.render(renderer)
         return true
     }

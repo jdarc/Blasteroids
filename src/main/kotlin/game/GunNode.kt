@@ -24,9 +24,10 @@ import engine.io.Keyboard
 import engine.io.Keys
 import engine.math.Matrix4
 import engine.math.Vector3
+import engine.physics.Simulation
 import engine.tools.Scheduler
 
-class GunNode(private val scheduler: Scheduler, transform: Matrix4) : BranchNode(transform) {
+class GunNode(private val simulation: Simulation, private val scheduler: Scheduler, transform: Matrix4) : BranchNode(transform) {
     private val arena by lazy { root?.get(0) as BranchNode }
     private var fireRate = 0.1F
     private var timer = 0F
@@ -40,10 +41,13 @@ class GunNode(private val scheduler: Scheduler, transform: Matrix4) : BranchNode
 
     private fun fire() {
         if (timer - last < fireRate) return
-        val missile = MissileNode()
-        missile.fire(worldPosition, Vector3(-worldTransform.m10, worldTransform.m00, 0F))
+        val missile = MissileNode(simulation)
+        missile.fire(transformedPosition, Vector3(-combinedTransform.m10, combinedTransform.m00, 0F))
         arena.addNodes(missile)
-        scheduler.schedule(2F) { removeNodes(missile) }
+        scheduler.schedule(2F) {
+            missile.destroy()
+            removeNodes(missile)
+        }
         last = timer
     }
 }

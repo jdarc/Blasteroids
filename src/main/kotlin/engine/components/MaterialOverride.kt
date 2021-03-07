@@ -17,48 +17,23 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package engine.components
 
-import engine.core.Camera
-import engine.core.Color
+import engine.core.Material
+import engine.graph.Component
+import engine.graph.Node
+import engine.graph.Renderer
 import engine.math.Frustum
 
-class Scene {
+class MaterialOverride(val material: Material) : Component() {
+    private var previous = material
 
-    var backcolor = Color.BLACK
-
-    val root = object : BranchNode() {
-        override val isRoot = true
+    override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
+        previous = renderer.material
+        renderer.material = material
     }
 
-    fun update(seconds: Float) {
-        root.traverseDown(
-            pre = { it.preUpdate(seconds) },
-            apply = {
-                it.update(seconds)
-                it.combineTransforms()
-                true
-            },
-            post = { it.postUpdate(seconds) }
-        )
-
-        root.traverseUp { it.aggregateBounds() }
-    }
-
-    fun render(camera: Camera, renderer: Renderer) {
-        renderer.resize()
-        camera.aspectRatio = renderer.aspectRatio
-
-        renderer.view = camera.view
-        renderer.projection = camera.projection
-
-        renderer.clear(backcolor)
-
-        val frustum = Frustum(camera)
-        root.traverseDown(
-            pre = { it.preRender(frustum, renderer) },
-            apply = { it.isContainedBy(frustum).apply { it.render(renderer) } },
-            post = { it.postRender(frustum, renderer) }
-        )
+    override fun postRender(frustum: Frustum, renderer: Renderer, node: Node) {
+        renderer.material = previous
     }
 }

@@ -17,34 +17,16 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph.components
+package engine.components
 
 import engine.graph.Component
 import engine.graph.Node
-import engine.graph.Renderer
-import engine.math.Frustum
-import engine.math.Ray
+import engine.math.Matrix4
 import engine.math.Vector3
+import engine.physics.RigidBody
 
-class WrapAroundComponent(val moveTo: (Vector3) -> Unit) : Component() {
-
-    override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
-        if (!frustum.contains(node.worldBounds)) {
-            var (x, y, z) = node.worldPosition
-            val top = frustum.intersect(RAY_UP)
-            val left = frustum.intersect(RAY_LEFT)
-            val right = frustum.intersect(RAY_RIGHT)
-            val bottom = frustum.intersect(RAY_DOWN)
-            if (x < left.x) x = right.x else if (x > right.x) x = left.x
-            if (y < bottom.y) y = top.y else if (y > top.y) y = bottom.y
-            moveTo(Vector3(x, y, z))
-        }
-    }
-
-    private companion object {
-        val RAY_LEFT = Ray(Vector3.ZERO, -Vector3.UNIT_X)
-        val RAY_RIGHT = Ray(Vector3.ZERO, Vector3.UNIT_X)
-        val RAY_DOWN = Ray(Vector3.ZERO, -Vector3.UNIT_Y)
-        val RAY_UP = Ray(Vector3.ZERO, Vector3.UNIT_Y)
+class Physics(val body: RigidBody) : Component() {
+    override fun preUpdate(seconds: Float, node: Node) {
+        node.transform = Matrix4.create(body.position, body.orientation, Vector3.ONE)
     }
 }

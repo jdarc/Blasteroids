@@ -24,27 +24,26 @@ import engine.math.Frustum
 import engine.math.Matrix4
 import engine.math.Vector3
 
-abstract class Node(transform: Matrix4 = Matrix4.IDENTITY) {
+abstract class Node(var transform: Matrix4 = Matrix4.IDENTITY) {
     private val components = mutableSetOf<Component>()
 
-    var localTransform = transform
-    var worldTransform = Matrix4.IDENTITY
+    var combinedTransform = Matrix4.IDENTITY
 
-    abstract val localBounds: Aabb
-    val worldBounds = Aabb()
+    abstract val bounds: Aabb
+    val aggregatedBounds = Aabb()
 
-    fun isContainedBy(frustum: Frustum) = frustum.contains(worldBounds)
+    fun isContainedBy(frustum: Frustum) = frustum.contains(aggregatedBounds)
 
     var position
-        get() = Vector3(localTransform.m03, localTransform.m13, localTransform.m23)
+        get() = Vector3(transform.m03, transform.m13, transform.m23)
         set(value) {
-            localTransform = Matrix4.createTranslation(value - position) * localTransform
+            transform = Matrix4.createTranslation(value - position) * transform
         }
 
-    var worldPosition
-        get() = Vector3(worldTransform.m03, worldTransform.m13, worldTransform.m23)
+    var transformedPosition
+        get() = Vector3(combinedTransform.m03, combinedTransform.m13, combinedTransform.m23)
         set(value) {
-            worldTransform = Matrix4.createTranslation(value - worldPosition) * worldTransform
+            combinedTransform = Matrix4.createTranslation(value - transformedPosition) * combinedTransform
         }
 
     var parent: BranchNode? = null
@@ -74,19 +73,19 @@ abstract class Node(transform: Matrix4 = Matrix4.IDENTITY) {
         return this
     }
 
-    open fun traverseDown(visitor: (Node) -> Boolean, pre: (Node) -> Unit = {},  post: (Node) -> Unit = {}) {
+    open fun traverseDown(apply: (Node) -> Boolean, pre: (Node) -> Unit = {}, post: (Node) -> Unit = {}) {
         pre(this)
-        visitor(this)
+        apply(this)
         post(this)
     }
 
-    open fun traverseUp(visitor: (Node) -> Unit) = visitor(this)
+    open fun traverseUp(apply: (Node) -> Unit) = apply(this)
 
-    open fun updateTransform() {
-        worldTransform = (parent?.worldTransform ?: Matrix4.IDENTITY) * localTransform
+    open fun combineTransforms() {
+        combinedTransform = (parent?.combinedTransform ?: Matrix4.IDENTITY) * transform
     }
 
-    abstract fun updateWorldBounds()
+    abstract fun aggregateBounds()
 
     open fun update(seconds: Float) = true
 

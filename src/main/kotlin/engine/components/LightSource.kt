@@ -17,7 +17,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph.components
+package engine.components
 
 import engine.core.Color
 import engine.graph.Component
@@ -26,7 +26,7 @@ import engine.graph.Renderer
 import engine.math.Frustum
 import engine.math.Vector3
 
-class LightComponent(val index: Int, var color: Color, var position: Vector3 = Vector3.ZERO) : Component() {
+class LightSource(val index: Int, var color: Color, var position: Vector3 = Vector3.ZERO) : Component() {
     var emitting = true
 
     override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
@@ -34,7 +34,7 @@ class LightComponent(val index: Int, var color: Color, var position: Vector3 = V
         if (emitting) {
             light.on = true
             light.color = color
-            light.position = position + Vector3(node.worldTransform.m03, node.worldTransform.m13, node.worldTransform.m23)
+            light.position = position + Vector3(node.combinedTransform.m03, node.combinedTransform.m13, node.combinedTransform.m23)
         }
     }
 

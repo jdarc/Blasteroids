@@ -17,48 +17,34 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package engine.components
 
-import engine.core.Camera
-import engine.core.Color
+import engine.graph.Component
+import engine.graph.Node
+import engine.graph.Renderer
 import engine.math.Frustum
+import engine.math.Ray
+import engine.math.Vector3
 
-class Scene {
+class WrapAround(val moveTo: (Vector3) -> Unit) : Component() {
 
-    var backcolor = Color.BLACK
-
-    val root = object : BranchNode() {
-        override val isRoot = true
+    override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
+        if (!frustum.contains(node.aggregatedBounds)) {
+            var (x, y, z) = node.transformedPosition
+            val top = frustum.intersect(RAY_UP)
+            val left = frustum.intersect(RAY_LEFT)
+            val right = frustum.intersect(RAY_RIGHT)
+            val bottom = frustum.intersect(RAY_DOWN)
+            if (x < left.x) x = right.x else if (x > right.x) x = left.x
+            if (y < bottom.y) y = top.y else if (y > top.y) y = bottom.y
+            moveTo(Vector3(x, y, z))
+        }
     }
 
-    fun update(seconds: Float) {
-        root.traverseDown(
-            pre = { it.preUpdate(seconds) },
-            apply = {
-                it.update(seconds)
-                it.combineTransforms()
-                true
-            },
-            post = { it.postUpdate(seconds) }
-        )
-
-        root.traverseUp { it.aggregateBounds() }
-    }
-
-    fun render(camera: Camera, renderer: Renderer) {
-        renderer.resize()
-        camera.aspectRatio = renderer.aspectRatio
-
-        renderer.view = camera.view
-        renderer.projection = camera.projection
-
-        renderer.clear(backcolor)
-
-        val frustum = Frustum(camera)
-        root.traverseDown(
-            pre = { it.preRender(frustum, renderer) },
-            apply = { it.isContainedBy(frustum).apply { it.render(renderer) } },
-            post = { it.postRender(frustum, renderer) }
-        )
+    private companion object {
+        val RAY_LEFT = Ray(Vector3.ZERO, -Vector3.UNIT_X)
+        val RAY_RIGHT = Ray(Vector3.ZERO, Vector3.UNIT_X)
+        val RAY_DOWN = Ray(Vector3.ZERO, -Vector3.UNIT_Y)
+        val RAY_UP = Ray(Vector3.ZERO, Vector3.UNIT_Y)
     }
 }

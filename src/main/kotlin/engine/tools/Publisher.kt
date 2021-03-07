@@ -17,48 +17,10 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package engine.tools
 
-import engine.core.Camera
-import engine.core.Color
-import engine.math.Frustum
-
-class Scene {
-
-    var backcolor = Color.BLACK
-
-    val root = object : BranchNode() {
-        override val isRoot = true
-    }
-
-    fun update(seconds: Float) {
-        root.traverseDown(
-            pre = { it.preUpdate(seconds) },
-            apply = {
-                it.update(seconds)
-                it.combineTransforms()
-                true
-            },
-            post = { it.postUpdate(seconds) }
-        )
-
-        root.traverseUp { it.aggregateBounds() }
-    }
-
-    fun render(camera: Camera, renderer: Renderer) {
-        renderer.resize()
-        camera.aspectRatio = renderer.aspectRatio
-
-        renderer.view = camera.view
-        renderer.projection = camera.projection
-
-        renderer.clear(backcolor)
-
-        val frustum = Frustum(camera)
-        root.traverseDown(
-            pre = { it.preRender(frustum, renderer) },
-            apply = { it.isContainedBy(frustum).apply { it.render(renderer) } },
-            post = { it.postRender(frustum, renderer) }
-        )
-    }
+interface Publisher<T, D> {
+    fun subscribe(eventType: T, subscriber: Subscriber<D>)
+    fun unsubscribe(eventType: T, subscriber: Subscriber<D>)
+    fun notify(eventType: T, data: D)
 }

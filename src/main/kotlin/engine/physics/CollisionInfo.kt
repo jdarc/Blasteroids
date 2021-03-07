@@ -17,23 +17,11 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph.components
+package engine.physics
 
-import engine.core.Material
-import engine.graph.Component
-import engine.graph.Node
-import engine.graph.Renderer
-import engine.math.Frustum
+import engine.math.Vector3
 
-class MaterialComponent(val material: Material) : Component() {
-    private var previous = material
-
-    override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
-        previous = renderer.material
-        renderer.material = material
-    }
-
-    override fun postRender(frustum: Frustum, renderer: Renderer, node: Node) {
-        renderer.material = previous
-    }
+class CollisionInfo(val body0: RigidBody, val body1: RigidBody, val dirToBody0: Vector3, val collisionPoint: Vector3) {
+    fun involves(body: RigidBody) = body == body0 || body == body1
+    fun hasData(data: String) = data == body0.data || data == body1.data
 }

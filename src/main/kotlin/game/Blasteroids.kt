@@ -22,9 +22,10 @@ package game
 import engine.core.*
 import engine.graph.BranchNode
 import engine.graph.Scene
-import engine.graph.components.LightComponent
+import engine.components.LightSource
 import engine.math.Scalar
 import engine.math.Vector3
+import engine.physics.Simulation
 import engine.tools.Scheduler
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
@@ -37,6 +38,7 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
     private val scheduler = Scheduler()
     private val camera = Camera(fov = Scalar.PI / 8F)
     private var scene = Scene()
+    private var simulation = Simulation()
 
     suspend fun run() {
         window.addEventListener("webglcontextlost", { GlobalScope.launch { device.initialize() } })
@@ -49,11 +51,11 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         val asteroids = arrayOf(asteroid1Geometry, asteroid2Geometry)
 
         val arena = BranchNode()
-        arena.addComponents(LightComponent(0, Color.WHITE, Vector3(0F, 30F, 20F)))
+        arena.addComponents(LightSource(0, Color.WHITE, Vector3(0F, 30F, 20F)))
 
-        arena.addNodes(ShipNode(shipGeometry, scheduler))
+        arena.addNodes(ShipNode(simulation, scheduler, shipGeometry))
 
-        scheduler.schedule(0.1F, 1F) { arena.addNodes(AsteroidNode(asteroids)) }
+        scheduler.schedule(0.1F, 1F) { arena.addNodes(AsteroidNode(simulation, asteroids)) }
 
         scene.backcolor = Color(0)
         scene.root.addNodes(arena)
@@ -62,6 +64,7 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
 
     override fun update(timeStep: Float) {
         scheduler.update(timeStep)
+        simulation.update(timeStep)
         scene.update(timeStep)
     }
 

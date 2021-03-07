@@ -19,34 +19,51 @@
 
 package game
 
+import engine.components.MaterialOverride
+import engine.components.Physics
 import engine.core.Color
 import engine.core.Material
 import engine.core.Primitives
 import engine.graph.BranchNode
 import engine.graph.LeafNode
-import engine.graph.components.MaterialComponent
 import engine.math.Matrix4
 import engine.math.Vector3
-import engine.physics.Particle
+import engine.physics.CollisionInfo
+import engine.physics.RigidBody
+import engine.physics.Simulation
+import engine.tools.Subscriber
 
-class MissileNode : BranchNode() {
-    private val particle = Particle()
+class MissileNode(private val simulation: Simulation) : BranchNode(), Subscriber<CollisionInfo> {
+    private val body = RigidBody()
 
     override fun update(seconds: Float): Boolean {
-        particle.position = position
-        particle.integrate(seconds)
-        localTransform = Matrix4.create(particle.position, Matrix4.IDENTITY, Vector3.ONE)
+        transform = Matrix4.create(body.position, Matrix4.IDENTITY, Vector3.ONE)
         return super.update(seconds)
     }
 
     fun fire(origin: Vector3, direction: Vector3) {
-        position = origin
-        particle.velocity = direction * speed
+        body.position = origin
+        body.velocity = direction * speed
     }
 
-     init {
-        addNodes(LeafNode(MISSILE_GEOMETRY).addComponents(MaterialComponent(MISSILE_MATERIAL)))
-     }
+    fun destroy() {
+        simulation.unsubscribe("Collision", this)
+        simulation.removeBody(body)
+        parent?.removeNodes(this)
+    }
+
+    init {
+        addNodes(LeafNode(MISSILE_GEOMETRY))
+        addComponents(MaterialOverride(MISSILE_MATERIAL), Physics(body))
+        body.data = "Missile"
+        body.boundingSphere = bounds.radius
+        simulation.addBody(body)
+        simulation.subscribe("Collision", this)
+    }
+
+    override fun update(context: CollisionInfo) {
+        if (context.involves(body) && context.hasData("Asteroid")) destroy()
+    }
 
     companion object {
         private var speed = 50F
