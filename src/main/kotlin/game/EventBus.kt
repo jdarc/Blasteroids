@@ -19,37 +19,21 @@
 
 package game
 
-import engine.graph.BranchNode
-import engine.io.Keyboard
-import engine.io.Keys
-import engine.math.Matrix4
-import engine.math.Vector3
-import engine.physics.Simulation
-import engine.tools.Scheduler
+import engine.tools.Publisher
+import engine.tools.Subscriber
 
-class GunNode(
-    private val eventBus: EventBus,
-    private val simulation: Simulation,
-    private val scheduler: Scheduler,
-    transform: Matrix4
-) : BranchNode(transform) {
-    private val arena by lazy { root?.get(0) as BranchNode }
-    private var fireRate = 0.1F
-    private var timer = 0F
-    private var last = 0F
+class EventBus : Publisher<String, Any> {
+    private val listeners = mutableMapOf<String, MutableSet<Subscriber<Any>>>()
 
-    override fun update(seconds: Float): Boolean {
-        timer += seconds
-        if (Keyboard.getState().isKeyDown(Keys.S)) fire()
-        return super.update(seconds)
+    override fun subscribe(eventType: String, subscriber: Subscriber<Any>) {
+        listeners.getOrPut(eventType, { mutableSetOf() }).add(subscriber)
     }
 
-    private fun fire() {
-        if (timer - last < fireRate) return
-        val missile = MissileNode(eventBus, simulation)
-        missile.fire(transformedPosition, Vector3(-combinedTransform.m10, combinedTransform.m00, 0F))
-        arena.addNodes(missile)
-        scheduler.schedule(2F) { missile.destroy() }
-        last = timer
+    override fun unsubscribe(eventType: String, subscriber: Subscriber<Any>) {
+        listeners[eventType]?.remove(subscriber)
+    }
+
+    override fun notify(eventType: String, data: Any) {
+        listeners[eventType]?.forEach { it.notify(data) }
     }
 }

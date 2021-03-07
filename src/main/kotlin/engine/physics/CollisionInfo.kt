@@ -23,5 +23,5 @@ import engine.math.Vector3
 
 class CollisionInfo(val body0: RigidBody, val body1: RigidBody, val dirToBody0: Vector3, val collisionPoint: Vector3) {
     fun involves(body: RigidBody) = body == body0 || body == body1
-    fun hasData(data: String) = data == body0.data || data == body1.data
+    fun hasData(data: Any) = data == body0.data || data == body1.data
 }

@@ -20,32 +20,17 @@
 package engine.physics
 
 import engine.math.Vector3
-import engine.tools.Publisher
-import engine.tools.Subscriber
+import game.EventBus
 
-class Simulation : Publisher<String, CollisionInfo> {
-    private val listeners = mutableMapOf<String, MutableSet<Subscriber<CollisionInfo>>>()
-    private val bodies = mutableListOf<RigidBody>()
-
-    override fun subscribe(eventType: String, subscriber: Subscriber<CollisionInfo>) {
-        listeners.getOrPut(eventType, { mutableSetOf() }).add(subscriber)
-    }
-
-    override fun unsubscribe(eventType: String, subscriber: Subscriber<CollisionInfo>) {
-        listeners[eventType]?.remove(subscriber)
-        console.log(listeners[eventType]?.size)
-    }
-
-    override fun notify(eventType: String, data: CollisionInfo) {
-        listeners[eventType]?.forEach { it.update(data) }
-    }
+class Simulation(private val events: EventBus) {
+    private val bodies = mutableSetOf<RigidBody>()
 
     fun addBody(body: RigidBody) {
-        if (!bodies.contains(body)) bodies.add(body)
+        bodies.add(body)
     }
 
     fun removeBody(body: RigidBody) {
-        if (bodies.contains(body)) bodies.remove(body)
+        bodies.remove(body)
     }
 
     fun update(timeStep: Float) {
@@ -62,9 +47,13 @@ class Simulation : Publisher<String, CollisionInfo> {
                 if (body0 != body1 && body0.hitTest(body1)) {
                     val dirToBody0 = Vector3.normalize(body0.position - body1.position)
                     val collisionPoint = body1.position + dirToBody0 * body1.boundingSphere
-                    notify("Collision", CollisionInfo(body0, body1, dirToBody0, collisionPoint))
+                    events.notify(COLLISION_EVENT, CollisionInfo(body0, body1, dirToBody0, collisionPoint))
                 }
             }
         }
+    }
+
+    companion object {
+        const val COLLISION_EVENT = "collision"
     }
 }

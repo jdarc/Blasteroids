@@ -33,7 +33,7 @@ import engine.physics.RigidBody
 import engine.physics.Simulation
 import engine.tools.Scheduler
 
-class ShipNode(simulation: Simulation, scheduler: Scheduler, shipGeometry: Geometry) : BranchNode() {
+class ShipNode(eventBus: EventBus, simulation: Simulation, scheduler: Scheduler, shipGeometry: Geometry) : BranchNode() {
     private var angularSpeed = Scalar.PI
     private var thrustSpeed = 20F
     private var radians = 0F
@@ -51,11 +51,11 @@ class ShipNode(simulation: Simulation, scheduler: Scheduler, shipGeometry: Geome
     }
 
     init {
-        val gun1Node = GunNode(simulation, scheduler, Matrix4.createTranslation(0F, 2F, 0F))
-        addNodes(LeafNode(shipGeometry), gun1Node)
-        addComponents(Physics(body), WrapAround { body.position = it })
-        body.data = "Ship"
+        body.data = ObjectTypes.SHIP
         body.boundingSphere = bounds.radius
         simulation.addBody(body)
+
+        addNodes(LeafNode(shipGeometry), GunNode(eventBus, simulation, scheduler, Matrix4.createTranslation(0F, 2F, 0F)))
+        addComponents(Physics(body), WrapAround { body.position = it })
     }
 }

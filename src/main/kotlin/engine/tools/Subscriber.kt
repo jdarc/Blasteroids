@@ -19,6 +19,6 @@
 
 package engine.tools
 
-interface Subscriber<D> {
-    fun update(context: D)
+fun interface Subscriber<D> {
+    fun notify(context: D)
 }

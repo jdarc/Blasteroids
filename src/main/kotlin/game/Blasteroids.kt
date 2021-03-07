@@ -19,14 +19,17 @@
 
 package game
 
+import engine.components.LightSource
 import engine.core.*
 import engine.graph.BranchNode
+import engine.graph.Geometry
 import engine.graph.Scene
-import engine.components.LightSource
 import engine.math.Scalar
 import engine.math.Vector3
 import engine.physics.Simulation
 import engine.tools.Scheduler
+import game.AsteroidNode.Companion.ASTEROID_CREATED
+import game.AsteroidNode.Companion.ASTEROID_DESTROYED
 import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -37,8 +40,9 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
     private val device = Device(canvas)
     private val scheduler = Scheduler()
     private val camera = Camera(fov = Scalar.PI / 8F)
-    private var scene = Scene()
-    private var simulation = Simulation()
+    private val scene = Scene()
+    private val events = EventBus()
+    private val simulation = Simulation(events)
 
     suspend fun run() {
         window.addEventListener("webglcontextlost", { GlobalScope.launch { device.initialize() } })
@@ -53,13 +57,29 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         val arena = BranchNode()
         arena.addComponents(LightSource(0, Color.WHITE, Vector3(0F, 30F, 20F)))
 
-        arena.addNodes(ShipNode(simulation, scheduler, shipGeometry))
+        arena.addNodes(ShipNode(events, simulation, scheduler, shipGeometry))
 
-        scheduler.schedule(0.1F, 1F) { arena.addNodes(AsteroidNode(simulation, asteroids)) }
+        var level = 1
+        var asteroidsCount = 0
+
+        events.subscribe(ASTEROID_CREATED) { asteroidsCount += 1 }
+        events.subscribe(ASTEROID_DESTROYED) {
+            asteroidsCount -= 1
+            if (asteroidsCount <= 0) {
+                level += 1
+                spawnAsteroid(level, arena, asteroids)
+            }
+        }
+
+        spawnAsteroid(level, arena, asteroids)
 
         scene.backcolor = Color(0)
         scene.root.addNodes(arena)
         GameLoop(this).start()
+    }
+
+    private fun spawnAsteroid(level: Int, arena: BranchNode, asteroids: Array<Geometry>) {
+        scheduler.schedule(0.1F, (level + 4) / 10F) { arena.addNodes(AsteroidNode(events, simulation, 0, asteroids)) }
     }
 
     override fun update(timeStep: Float) {
