@@ -20,7 +20,9 @@
 package game
 
 import engine.graph.BranchNode
+import engine.graph.Geometry
 import engine.graph.LeafNode
+import engine.graph.components.WrapAroundComponent
 import engine.io.Keyboard
 import engine.io.Keys
 import engine.math.Matrix4
@@ -29,7 +31,7 @@ import engine.math.Vector3
 import engine.physics.Particle
 import engine.tools.Scheduler
 
-class ShipNode(shipGeometry: LeafNode, scheduler: Scheduler) : BranchNode() {
+class ShipNode(shipGeometry: Geometry, scheduler: Scheduler) : BranchNode() {
     private var angularSpeed = Scalar.PI
     private var thrustSpeed = 20F
     private var radians = 0F
@@ -59,6 +61,7 @@ class ShipNode(shipGeometry: LeafNode, scheduler: Scheduler) : BranchNode() {
     init {
         val gun1Node = GunNode(scheduler, Matrix4.createTranslation(-1.7F, 0.9F, 0F))
         val gun2Node = GunNode(scheduler, Matrix4.createTranslation(1.7F, 0.9F, 0F))
-        add(gun1Node, gun2Node, shipGeometry)
+        addNodes(LeafNode(shipGeometry), gun1Node, gun2Node)
+        addComponents(WrapAroundComponent { position = it })
     }
 }

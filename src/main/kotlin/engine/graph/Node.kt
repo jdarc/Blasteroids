@@ -25,7 +25,7 @@ import engine.math.Matrix4
 import engine.math.Vector3
 
 abstract class Node(transform: Matrix4 = Matrix4.IDENTITY) {
-    private val components = mutableListOf<Component>()
+    private val components = mutableSetOf<Component>()
 
     var localTransform = transform
     var worldTransform = Matrix4.IDENTITY
@@ -50,9 +50,9 @@ abstract class Node(transform: Matrix4 = Matrix4.IDENTITY) {
     var parent: BranchNode? = null
         set(value) {
             if (value == parent) return
-            field?.remove(this)
+            field?.removeNodes(this)
             field = value
-            field?.add(this)
+            field?.addNodes(this)
         }
 
     open val isRoot = false
@@ -64,12 +64,12 @@ abstract class Node(transform: Matrix4 = Matrix4.IDENTITY) {
             return root
         }
 
-    fun add(vararg components: Component): Node {
+    fun addComponents(vararg components: Component): Node {
         this.components.addAll(components)
         return this
     }
 
-    fun remove(vararg components: Component): Node {
+    fun removeComponents(vararg components: Component): Node {
         this.components.removeAll(components)
         return this
     }

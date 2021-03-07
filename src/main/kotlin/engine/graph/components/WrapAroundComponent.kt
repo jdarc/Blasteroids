@@ -26,7 +26,7 @@ import engine.math.Frustum
 import engine.math.Ray
 import engine.math.Vector3
 
-class WrapAroundComponent : Component() {
+class WrapAroundComponent(val moveTo: (Vector3) -> Unit) : Component() {
 
     override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
         if (!frustum.contains(node.worldBounds)) {
@@ -37,7 +37,7 @@ class WrapAroundComponent : Component() {
             val bottom = frustum.intersect(RAY_DOWN)
             if (x < left.x) x = right.x else if (x > right.x) x = left.x
             if (y < bottom.y) y = top.y else if (y > top.y) y = bottom.y
-            node.position = Vector3(x, y, z)
+            moveTo(Vector3(x, y, z))
         }
     }
 

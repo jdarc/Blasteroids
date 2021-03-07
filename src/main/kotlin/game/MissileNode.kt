@@ -45,7 +45,7 @@ class MissileNode : BranchNode() {
     }
 
      init {
-        add(LeafNode(MISSILE_GEOMETRY).add(MaterialComponent(MISSILE_MATERIAL)))
+        addNodes(LeafNode(MISSILE_GEOMETRY).addComponents(MaterialComponent(MISSILE_MATERIAL)))
      }
 
     companion object {
@@ -57,8 +57,6 @@ class MissileNode : BranchNode() {
             colors.diffuse = Color.RED
             colors.specular = Color.WHITE
         }
-
-        fun build() = MissileNode()
     }
 }
 

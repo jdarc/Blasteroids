@@ -21,10 +21,8 @@ package game
 
 import engine.core.*
 import engine.graph.BranchNode
-import engine.graph.LeafNode
 import engine.graph.Scene
 import engine.graph.components.LightComponent
-import engine.graph.components.WrapAroundComponent
 import engine.math.Scalar
 import engine.math.Vector3
 import engine.tools.Scheduler
@@ -32,11 +30,9 @@ import kotlinx.browser.window
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.w3c.dom.HTMLCanvasElement
-import kotlin.random.Random
 
 @Suppress("SpellCheckingInspection")
 class Blasteroids(canvas: HTMLCanvasElement) : Game {
-    private val rnd = Random(1973)
     private val device = Device(canvas)
     private val scheduler = Scheduler()
     private val camera = Camera(fov = Scalar.PI / 8F)
@@ -46,24 +42,21 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         window.addEventListener("webglcontextlost", { GlobalScope.launch { device.initialize() } })
         device.initialize()
         camera.position = Vector3(0F, 0F, 120F)
-        scene.backcolor = Color(0)
 
+        val shipGeometry = Loader.read("models", "fighter.obj")
         val asteroid1Geometry = Loader.read("models", "asteroid1.obj")
         val asteroid2Geometry = Loader.read("models", "asteroid2.obj")
         val asteroids = arrayOf(asteroid1Geometry, asteroid2Geometry)
-        val shipGeometry = LeafNode(Loader.read("models", "fighter.obj"))
-        val wrapComponent = WrapAroundComponent()
 
         val arena = BranchNode()
-        scene.root.add(arena)
+        arena.addComponents(LightComponent(0, Color.WHITE, Vector3(0F, 30F, 20F)))
 
-        arena.add(LightComponent(0, Color.WHITE, Vector3(0F, 30F, 20F)))
-        arena.add(ShipNode(shipGeometry, scheduler).add(wrapComponent))
+        arena.addNodes(ShipNode(shipGeometry, scheduler))
 
-        scheduler.schedule(0.1F, 1F) {
-            arena.add(AsteroidNode().add(LeafNode(asteroids[rnd.nextInt(0, asteroids.size)])).add(wrapComponent))
-        }
+        scheduler.schedule(0.1F, 1F) { arena.addNodes(AsteroidNode(asteroids)) }
 
+        scene.backcolor = Color(0)
+        scene.root.addNodes(arena)
         GameLoop(this).start()
     }
 

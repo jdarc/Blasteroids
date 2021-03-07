@@ -29,7 +29,7 @@ open class BranchNode(transform: Matrix4 = Matrix4.IDENTITY) : Node(transform) {
 
     operator fun get(index: Int) = children[index]
 
-    fun add(vararg nodes: Node): BranchNode {
+    fun addNodes(vararg nodes: Node): BranchNode {
         nodes.forEach {
             if (it != this && it !in children) {
                 children.add(it)
@@ -39,7 +39,7 @@ open class BranchNode(transform: Matrix4 = Matrix4.IDENTITY) : Node(transform) {
         return this
     }
 
-    fun remove(vararg nodes: Node): BranchNode {
+    fun removeNodes(vararg nodes: Node): BranchNode {
         nodes.forEach {
             if (it in children) {
                 children.remove(it)

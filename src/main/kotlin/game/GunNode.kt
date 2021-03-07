@@ -40,10 +40,10 @@ class GunNode(private val scheduler: Scheduler, transform: Matrix4) : BranchNode
 
     private fun fire() {
         if (timer - last < fireRate) return
-        val missile = MissileNode.build()
+        val missile = MissileNode()
         missile.fire(worldPosition, Vector3(-worldTransform.m10, worldTransform.m00, 0F))
-        arena.add(missile)
-        scheduler.schedule(2F) { remove(missile) }
+        arena.addNodes(missile)
+        scheduler.schedule(2F) { removeNodes(missile) }
         last = timer
     }
 }
