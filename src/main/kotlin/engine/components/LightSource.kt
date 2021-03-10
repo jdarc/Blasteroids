@@ -26,7 +26,7 @@ import engine.graph.Renderer
 import engine.math.Frustum
 import engine.math.Vector3
 
-class LightSource(val index: Int, var color: Color, var position: Vector3 = Vector3.ZERO) : Component() {
+class LightSource(private val index: Int, var color: Color, var position: Vector3 = Vector3.ZERO) : Component {
     var emitting = true
 
     override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {

@@ -26,7 +26,7 @@ import engine.math.Frustum
 import engine.math.Ray
 import engine.math.Vector3
 
-class WrapAround(val moveTo: (Vector3) -> Unit) : Component() {
+class WrapAround(private val moveTo: (Vector3) -> Unit) : Component {
 
     override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
         if (!frustum.contains(node.aggregatedBounds)) {

@@ -21,9 +21,9 @@ package engine.graph
 
 import engine.math.Frustum
 
-abstract class Component {
-    open fun preUpdate(seconds: Float, node: Node) = Unit
-    open fun postUpdate(seconds: Float, node: Node) = Unit
-    open fun preRender(frustum: Frustum, renderer: Renderer, node: Node) = Unit
-    open fun postRender(frustum: Frustum, renderer: Renderer, node: Node) = Unit
+interface Component {
+    fun preUpdate(seconds: Float, node: Node) = Unit
+    fun postUpdate(seconds: Float, node: Node) = Unit
+    fun preRender(frustum: Frustum, renderer: Renderer, node: Node) = Unit
+    fun postRender(frustum: Frustum, renderer: Renderer, node: Node) = Unit
 }

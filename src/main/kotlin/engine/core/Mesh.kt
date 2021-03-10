@@ -23,7 +23,7 @@ import engine.graph.Geometry
 import engine.graph.Renderer
 import engine.math.Aabb
 
-class Mesh(inline val data: FloatArray, private inline val count: Int) : Geometry {
+class Mesh(private val data: FloatArray, private val count: Int) : Geometry {
 
     override val vertexCount = data.size / ELEMENTS_PER_VERTEX
 

@@ -25,7 +25,7 @@ import engine.math.Matrix4
 import engine.math.Vector3
 import engine.physics.RigidBody
 
-class Physics(val body: RigidBody) : Component() {
+class Physics(private val body: RigidBody) : Component {
     override fun preUpdate(seconds: Float, node: Node) {
         node.transform = Matrix4.create(body.position, body.orientation, Vector3.ONE)
     }

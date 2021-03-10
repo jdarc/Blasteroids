@@ -25,7 +25,7 @@ import engine.graph.Node
 import engine.graph.Renderer
 import engine.math.Frustum
 
-class MaterialOverride(val material: Material) : Component() {
+class MaterialOverride(private val material: Material) : Component {
     private var previous = material
 
     override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
