@@ -19,11 +19,9 @@
 
 package engine.graph
 
-import engine.math.Frustum
-
 interface Component {
     fun preUpdate(seconds: Float, node: Node) = Unit
     fun postUpdate(seconds: Float, node: Node) = Unit
-    fun preRender(frustum: Frustum, renderer: Renderer, node: Node) = Unit
-    fun postRender(frustum: Frustum, renderer: Renderer, node: Node) = Unit
+    fun preRender(renderer: Renderer, node: Node) = Unit
+    fun postRender(renderer: Renderer, node: Node) = Unit
 }

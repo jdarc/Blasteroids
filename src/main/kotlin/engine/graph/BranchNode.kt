@@ -25,7 +25,7 @@ import engine.math.Matrix4
 open class BranchNode(transform: Matrix4 = Matrix4.IDENTITY) : Node(transform) {
     private val children = mutableListOf<Node>()
 
-    override val bounds get() = children.fold(Aabb(), { dst, src -> dst.aggregate(src.bounds) })
+    override val localBounds get() = children.fold(Aabb(), { dst, src -> dst.aggregate(src.localBounds) })
 
     operator fun get(index: Int) = children[index]
 
@@ -49,19 +49,18 @@ open class BranchNode(transform: Matrix4 = Matrix4.IDENTITY) : Node(transform) {
         return this
     }
 
-    override fun traverseDown(apply: (Node) -> Boolean, pre: (Node) -> Unit, post: (Node) -> Unit) {
-        pre(this)
-        if (apply(this)) children.forEach { it.traverseDown(apply, pre, post) }
-        post(this)
-    }
-
-    override fun traverseUp(apply: (Node) -> Unit) {
-        children.forEach { it.traverseUp(apply) }
+    override fun traverseDown(visitor: (Node) -> Boolean, apply: (Node) -> Unit) {
+        if (visitor(this)) children.forEach { it.traverseDown(visitor, apply) }
         apply(this)
     }
 
-    override fun aggregateBounds() {
-        aggregatedBounds.reset()
-        children.forEach { aggregatedBounds.aggregate(it.aggregatedBounds) }
+    override fun traverseUp(visitor: (Node) -> Unit) {
+        children.forEach { it.traverseUp(visitor) }
+        visitor(this)
+    }
+
+    override fun combineBounds() {
+        bounds.reset()
+        children.forEach { bounds.aggregate(it.bounds) }
     }
 }

@@ -23,10 +23,10 @@ import engine.math.Matrix4
 
 open class LeafNode(private val geometry: Geometry, transform: Matrix4 = Matrix4.IDENTITY) : Node(transform) {
 
-    override val bounds = geometry.bounds
+    override val localBounds = geometry.bounds
 
-    override fun aggregateBounds() {
-        aggregatedBounds.reset().aggregate(bounds, combinedTransform)
+    override fun combineBounds() {
+        bounds.reset().aggregate(localBounds, combinedTransform)
     }
 
     override fun render(renderer: Renderer): Boolean {

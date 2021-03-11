@@ -19,10 +19,8 @@
 
 package engine.math
 
-import engine.core.Camera
-
-class Frustum(camera: Camera) {
-    private val planes = (camera.projection * camera.view).run {
+class Frustum(view: Matrix4, projection: Matrix4) {
+    private val planes = (projection * view).run {
         arrayOf(
             Plane.create(m30 + m00, m31 + m01, m32 + m02, m33 + m03),
             Plane.create(m30 - m00, m31 - m01, m32 - m02, m33 - m03),

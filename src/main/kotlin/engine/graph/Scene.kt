@@ -21,7 +21,6 @@ package engine.graph
 
 import engine.core.Camera
 import engine.core.Color
-import engine.math.Frustum
 
 class Scene {
 
@@ -32,17 +31,8 @@ class Scene {
     }
 
     fun update(seconds: Float) {
-        root.traverseDown(
-            pre = { it.preUpdate(seconds) },
-            apply = {
-                it.update(seconds)
-                it.combineTransforms()
-                true
-            },
-            post = { it.postUpdate(seconds) }
-        )
-
-        root.traverseUp { it.aggregateBounds() }
+        root.traverseDown({ update(it, seconds) })
+        root.traverseUp { postUpdate(it, seconds) }
     }
 
     fun render(camera: Camera, renderer: Renderer) {
@@ -51,14 +41,32 @@ class Scene {
 
         renderer.view = camera.view
         renderer.projection = camera.projection
-
         renderer.clear(backcolor)
-
-        val frustum = Frustum(camera)
-        root.traverseDown(
-            pre = { it.preRender(frustum, renderer) },
-            apply = { it.isContainedBy(frustum).apply { it.render(renderer) } },
-            post = { it.postRender(frustum, renderer) }
-        )
+        root.traverseDown({ render(it, camera, renderer) }, { postRender(it, renderer) })
     }
+
+    private fun update(node: Node, seconds: Float): Boolean {
+        node.components.forEach { it.preUpdate(seconds, node) }
+        node.update(seconds)
+        node.combineTransforms()
+        return true
+    }
+
+    private fun postUpdate(node: Node, seconds: Float) {
+        node.combineBounds()
+        node.components.forEach { it.postUpdate(seconds, node) }
+    }
+
+    private fun render(node: Node, camera: Camera, renderer: Renderer): Boolean {
+        node.components.forEach { it.preRender(renderer, node) }
+        return when {
+            camera.frustum.contains(node.bounds) -> {
+                node.render(renderer)
+                true
+            }
+            else -> false
+        }
+    }
+
+    private fun postRender(node: Node, renderer: Renderer) = node.components.forEach { it.postRender(renderer, node) }
 }

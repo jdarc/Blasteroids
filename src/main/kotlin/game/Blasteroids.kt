@@ -57,7 +57,7 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         val arena = BranchNode()
         arena.addComponents(LightSource(0, Color.WHITE, Vector3(0F, 30F, 20F)))
 
-        arena.addNodes(ShipNode(events, simulation, scheduler, shipGeometry))
+        arena.addNodes(ShipNode(shipGeometry, camera, events, simulation, scheduler))
 
         var level = 1
         var asteroidsCount = 0
@@ -79,7 +79,7 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
     }
 
     private fun spawnAsteroid(level: Int, arena: BranchNode, asteroids: Array<Geometry>) {
-        scheduler.schedule(0.1F, (level + 4) / 10F) { arena.addNodes(AsteroidNode(events, simulation, 0, asteroids)) }
+        scheduler.schedule(0.1F, (level + 4) / 10F) { arena.addNodes(AsteroidNode(asteroids, camera, events, simulation, 0)) }
     }
 
     override fun update(timeStep: Float) {

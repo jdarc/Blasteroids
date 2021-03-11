@@ -19,22 +19,21 @@
 
 package engine.components
 
+import engine.core.Camera
 import engine.graph.Component
 import engine.graph.Node
-import engine.graph.Renderer
-import engine.math.Frustum
 import engine.math.Ray
 import engine.math.Vector3
 
-class WrapAround(private val moveTo: (Vector3) -> Unit) : Component {
+class WrapAround(private val camera: Camera, private val moveTo: (Vector3) -> Unit) : Component {
 
-    override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
-        if (!frustum.contains(node.aggregatedBounds)) {
+    override fun preUpdate(seconds: Float, node: Node) {
+        if (!camera.frustum.contains(node.bounds)) {
             var (x, y, z) = node.transformedPosition
-            val top = frustum.intersect(RAY_UP)
-            val left = frustum.intersect(RAY_LEFT)
-            val right = frustum.intersect(RAY_RIGHT)
-            val bottom = frustum.intersect(RAY_DOWN)
+            val top = camera.frustum.intersect(RAY_UP)
+            val left = camera.frustum.intersect(RAY_LEFT)
+            val right = camera.frustum.intersect(RAY_RIGHT)
+            val bottom = camera.frustum.intersect(RAY_DOWN)
             if (x < left.x) x = right.x else if (x > right.x) x = left.x
             if (y < bottom.y) y = top.y else if (y > top.y) y = bottom.y
             moveTo(Vector3(x, y, z))

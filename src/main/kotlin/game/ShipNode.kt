@@ -21,6 +21,7 @@ package game
 
 import engine.components.Physics
 import engine.components.WrapAround
+import engine.core.Camera
 import engine.graph.BranchNode
 import engine.graph.Geometry
 import engine.graph.LeafNode
@@ -33,7 +34,7 @@ import engine.physics.RigidBody
 import engine.physics.Simulation
 import engine.tools.Scheduler
 
-class ShipNode(eventBus: EventBus, simulation: Simulation, scheduler: Scheduler, shipGeometry: Geometry) : BranchNode() {
+class ShipNode(geometry: Geometry, camera: Camera, events: EventBus, simulation: Simulation, scheduler: Scheduler) : BranchNode() {
     private var angularSpeed = Scalar.PI
     private var thrustSpeed = 20F
     private var radians = 0F
@@ -52,10 +53,10 @@ class ShipNode(eventBus: EventBus, simulation: Simulation, scheduler: Scheduler,
 
     init {
         body.data = ObjectTypes.SHIP
-        body.boundingSphere = bounds.radius
+        body.boundingSphere = localBounds.radius
         simulation.addBody(body)
 
-        addNodes(LeafNode(shipGeometry), GunNode(eventBus, simulation, scheduler, Matrix4.createTranslation(0F, 2F, 0F)))
-        addComponents(Physics(body), WrapAround { body.position = it })
+        addNodes(LeafNode(geometry), GunNode(events, simulation, scheduler, Matrix4.createTranslation(0F, 2F, 0F)))
+        addComponents(Physics(body), WrapAround(camera) { body.position = it })
     }
 }

@@ -2,6 +2,7 @@ package game
 
 import engine.components.Physics
 import engine.components.WrapAround
+import engine.core.Camera
 import engine.graph.BranchNode
 import engine.graph.Geometry
 import engine.graph.LeafNode
@@ -15,10 +16,11 @@ import engine.tools.Subscriber
 import kotlin.random.Random
 
 class AsteroidNode(
+    private val asteroids: Array<Geometry>,
+    private val camera: Camera,
     private val events: EventBus,
     private val simulation: Simulation,
-    private val level: Int = 0,
-    private val asteroids: Array<Geometry>
+    private val level: Int = 0
 ) : BranchNode(), Subscriber<Any> {
     private var energy = 8 shr level
     private val axis = Vector3.random()
@@ -42,7 +44,7 @@ class AsteroidNode(
 
                 if (level < 2) {
                     for (i in 0 until 4.shr(level)) {
-                        val asteroid = AsteroidNode(events, simulation, level + 1, asteroids)
+                        val asteroid = AsteroidNode(asteroids, camera, events, simulation, level + 1)
                         asteroid.body.position = body.position
                         parent?.addNodes(asteroid)
                     }
@@ -62,7 +64,7 @@ class AsteroidNode(
         simulation.addBody(body)
 
         addNodes(LeafNode(asteroids[rnd.nextInt(0, asteroids.size)]))
-        addComponents(Physics(body), WrapAround { body.position = it })
+        addComponents(Physics(body), WrapAround(camera) { body.position = it })
 
         events.subscribe(COLLISION_EVENT, this)
         events.notify(ASTEROID_CREATED, this)

@@ -23,13 +23,12 @@ import engine.core.Color
 import engine.graph.Component
 import engine.graph.Node
 import engine.graph.Renderer
-import engine.math.Frustum
 import engine.math.Vector3
 
-class LightSource(private val index: Int, var color: Color, var position: Vector3 = Vector3.ZERO) : Component {
+class LightSource(val index: Int, var color: Color, var position: Vector3 = Vector3.ZERO) : Component {
     var emitting = true
 
-    override fun preRender(frustum: Frustum, renderer: Renderer, node: Node) {
+    override fun preRender(renderer: Renderer, node: Node) {
         val light = renderer.lights[index]
         if (emitting) {
             light.on = true
@@ -38,7 +37,7 @@ class LightSource(private val index: Int, var color: Color, var position: Vector
         }
     }
 
-    override fun postRender(frustum: Frustum, renderer: Renderer, node: Node) {
+    override fun postRender(renderer: Renderer, node: Node) {
         renderer.lights[index].on = false
     }
 }

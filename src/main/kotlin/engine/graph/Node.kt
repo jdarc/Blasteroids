@@ -25,14 +25,13 @@ import engine.math.Matrix4
 import engine.math.Vector3
 
 abstract class Node(var transform: Matrix4 = Matrix4.IDENTITY) {
-    private val components = mutableSetOf<Component>()
-
     var combinedTransform = Matrix4.IDENTITY
 
-    abstract val bounds: Aabb
-    val aggregatedBounds = Aabb()
+    abstract fun combineBounds()
+    abstract val localBounds: Aabb
+    val bounds = Aabb()
 
-    fun isContainedBy(frustum: Frustum) = frustum.contains(aggregatedBounds)
+    val components = mutableSetOf<Component>()
 
     var position
         get() = Vector3(transform.m03, transform.m13, transform.m23)
@@ -63,6 +62,8 @@ abstract class Node(var transform: Matrix4 = Matrix4.IDENTITY) {
             return root
         }
 
+    fun isContainedBy(frustum: Frustum) = frustum.contains(bounds)
+
     fun addComponents(vararg components: Component): Node {
         this.components.addAll(components)
         return this
@@ -73,29 +74,18 @@ abstract class Node(var transform: Matrix4 = Matrix4.IDENTITY) {
         return this
     }
 
-    open fun traverseDown(apply: (Node) -> Boolean, pre: (Node) -> Unit = {}, post: (Node) -> Unit = {}) {
-        pre(this)
+    open fun traverseDown(visitor: (Node) -> Boolean, apply: (Node) -> Unit = {}) {
+        visitor(this)
         apply(this)
-        post(this)
     }
 
-    open fun traverseUp(apply: (Node) -> Unit) = apply(this)
-
+    open fun traverseUp(visitor: (Node) -> Unit) = visitor(this)
+    
     open fun combineTransforms() {
         combinedTransform = (parent?.combinedTransform ?: Matrix4.IDENTITY) * transform
     }
 
-    abstract fun aggregateBounds()
-
     open fun update(seconds: Float) = true
 
     open fun render(renderer: Renderer) = true
-
-    fun preUpdate(seconds: Float) = components.forEach { it.preUpdate(seconds, this) }
-
-    fun postUpdate(seconds: Float) = components.forEach { it.postUpdate(seconds, this) }
-
-    fun preRender(frustum: Frustum, renderer: Renderer) = components.forEach { it.preRender(frustum, renderer, this) }
-
-    fun postRender(frustum: Frustum, renderer: Renderer) = components.forEach { it.postRender(frustum, renderer, this) }
 }

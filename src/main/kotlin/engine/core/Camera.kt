@@ -19,6 +19,7 @@
 
 package engine.core
 
+import engine.math.Frustum
 import engine.math.Matrix4
 import engine.math.Scalar
 import engine.math.Vector3
@@ -35,6 +36,7 @@ class Camera(fov: Float = Scalar.PI / 4F, aspectRatio: Float = 1F, nearPlane: Fl
     private val worldUp = Float32Array(arrayOf(0F, 1F, 0F))
     private var viewMatrix = Matrix4.IDENTITY
     private var projMatrix = Matrix4.IDENTITY
+    private var camFrustum = Frustum(viewMatrix, projMatrix)
     private var dirty = true
 
     var fieldOfView = fov
@@ -84,6 +86,8 @@ class Camera(fov: Float = Scalar.PI / 4F, aspectRatio: Float = 1F, nearPlane: Fl
             dirty = true
         }
 
+    val frustum get() = regenerateMatrix().run { camFrustum }
+
     val direction get() = Vector3.normalize(Vector3(lookAt[0] - eyePos[0], lookAt[1] - eyePos[1], lookAt[2] - eyePos[2]))
 
     val yaw get() = -atan2(-view.m20, view.m22)
@@ -122,6 +126,7 @@ class Camera(fov: Float = Scalar.PI / 4F, aspectRatio: Float = 1F, nearPlane: Fl
         if (dirty) {
             viewMatrix = Matrix4.createLookAt(position, target, up)
             projMatrix = Matrix4.createPerspectiveFov(fieldOfView, aspectRatio, nearDistance, farDistance)
+            camFrustum = Frustum(viewMatrix, projMatrix)
             dirty = false
         }
     }

@@ -57,7 +57,7 @@ class MissileNode(private val eventBus: EventBus, private val simulation: Simula
         addNodes(LeafNode(MISSILE_GEOMETRY))
         addComponents(MaterialOverride(MISSILE_MATERIAL), Physics(body))
         body.data = ObjectTypes.MISSILE
-        body.boundingSphere = bounds.radius
+        body.boundingSphere = localBounds.radius
         simulation.addBody(body)
         eventBus.subscribe(COLLISION_EVENT, this)
     }
