@@ -33,7 +33,7 @@ class LightSource(val index: Int, var color: Color, var position: Vector3 = Vect
         if (emitting) {
             light.on = true
             light.color = color
-            light.position = position + Vector3(node.combinedTransform.m03, node.combinedTransform.m13, node.combinedTransform.m23)
+            light.position = position + node.transformedPosition
         }
     }
 
