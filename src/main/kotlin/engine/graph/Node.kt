@@ -74,6 +74,11 @@ abstract class Node(var transform: Matrix4 = Matrix4.IDENTITY) {
         return this
     }
 
+    fun removeAllComponents(): Node {
+        this.components.clear()
+        return this
+    }
+
     open fun traverseDown(visitor: (Node) -> Boolean, apply: (Node) -> Unit = {}) {
         visitor(this)
         apply(this)

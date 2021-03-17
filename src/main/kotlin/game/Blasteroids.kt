@@ -26,6 +26,7 @@ import engine.graph.Geometry
 import engine.graph.Scene
 import engine.math.Scalar
 import engine.math.Vector3
+import engine.physics.Exploder
 import engine.physics.Simulation
 import engine.tools.Scheduler
 import game.AsteroidNode.Companion.ASTEROID_CREATED
@@ -44,6 +45,7 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
     private val events = EventBus()
     private val simulation = Simulation(events)
 
+
     suspend fun run() {
         window.addEventListener("webglcontextlost", { GlobalScope.launch { device.initialize() } })
         device.initialize()
@@ -55,6 +57,7 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         val asteroids = arrayOf(asteroid1Geometry, asteroid2Geometry)
 
         val arena = BranchNode()
+        val exploder = Exploder(events, arena)
         arena.addComponents(LightSource(0, Color.WHITE, Vector3(0F, 30F, 20F)))
 
         arena.addNodes(ShipNode(shipGeometry, camera, events, simulation, scheduler))

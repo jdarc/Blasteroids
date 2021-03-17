@@ -30,11 +30,14 @@ import engine.io.Keys
 import engine.math.Matrix4
 import engine.math.Scalar
 import engine.math.Vector3
+import engine.physics.CollisionInfo
+import engine.physics.DestructionInfo
 import engine.physics.RigidBody
 import engine.physics.Simulation
 import engine.tools.Scheduler
+import engine.tools.Subscriber
 
-class ShipNode(geometry: Geometry, camera: Camera, events: EventBus, simulation: Simulation, scheduler: Scheduler) : BranchNode() {
+class ShipNode(geometry: Geometry, camera: Camera, private val events: EventBus, private val simulation: Simulation, scheduler: Scheduler) : BranchNode(), Subscriber<Any> {
     private var angularSpeed = Scalar.PI
     private var thrustSpeed = 20F
     private var radians = 0F
@@ -52,11 +55,28 @@ class ShipNode(geometry: Geometry, camera: Camera, events: EventBus, simulation:
     }
 
     init {
+        addNodes(LeafNode(geometry), GunNode(events, simulation, scheduler, Matrix4.createTranslation(0F, 2F, 0F)))
+        addComponents(Physics(body), WrapAround(camera) { body.position = it })
         body.data = ObjectTypes.SHIP
         body.boundingSphere = localBounds.radius
         simulation.addBody(body)
 
-        addNodes(LeafNode(geometry), GunNode(events, simulation, scheduler, Matrix4.createTranslation(0F, 2F, 0F)))
-        addComponents(Physics(body), WrapAround(camera) { body.position = it })
+        events.subscribe(Simulation.COLLISION_EVENT, this)
     }
+
+    fun destroy() {
+        events.notify(SHIP_DESTROYED_EVENT, DestructionInfo(body))
+        events.unsubscribe(Simulation.COLLISION_EVENT, this)
+        simulation.removeBody(body)
+        parent?.removeNodes(this)
+    }
+
+    override fun notify(context: Any) {
+        if (context is CollisionInfo && context.involves(body) && context.hasData(ObjectTypes.ASTEROID)) destroy()
+    }
+
+    companion object {
+        const val SHIP_DESTROYED_EVENT = "ship.destroyed"
+    }
+
 }

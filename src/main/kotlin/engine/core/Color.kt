@@ -33,6 +33,7 @@ data class Color(val argb: Int) {
         val RED = create(0xFF0000)
         val GREEN = create(0x00FF00)
         val BLUE = create(0x0000FF)
+        val YELLOW = create(0xFFFF00)
 
         fun create(rgb: Int, alpha: Int = 0xFF) = create(unpack(rgb, 16), unpack(rgb, 8), unpack(rgb), unpack(alpha))
 

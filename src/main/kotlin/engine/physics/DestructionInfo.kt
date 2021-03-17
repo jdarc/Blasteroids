@@ -17,6 +17,8 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package game
+package engine.physics
 
-enum class ObjectTypes { SHIP, MISSILE, ASTEROID, EXPLOSION }
+class DestructionInfo(val body: RigidBody) {
+    fun getObject() = body
+}

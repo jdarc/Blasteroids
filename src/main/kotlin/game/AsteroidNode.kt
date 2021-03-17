@@ -9,6 +9,7 @@ import engine.graph.LeafNode
 import engine.math.Matrix4
 import engine.math.Vector3
 import engine.physics.CollisionInfo
+import engine.physics.DestructionInfo
 import engine.physics.RigidBody
 import engine.physics.Simulation
 import engine.physics.Simulation.Companion.COLLISION_EVENT
@@ -50,7 +51,7 @@ class AsteroidNode(
                     }
                 }
                 parent?.removeNodes(this)
-                events.notify(ASTEROID_DESTROYED, this)
+                events.notify(ASTEROID_DESTROYED, DestructionInfo(this.body))
             }
         }
     }
@@ -73,7 +74,6 @@ class AsteroidNode(
     companion object {
         const val ASTEROID_CREATED = "asteroid.created"
         const val ASTEROID_DESTROYED = "asteroid.destroyed"
-
         private val rnd = Random(1973)
     }
 }
