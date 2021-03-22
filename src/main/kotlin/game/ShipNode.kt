@@ -23,40 +23,58 @@ import engine.components.Physics
 import engine.components.WrapAround
 import engine.core.Camera
 import engine.graph.BranchNode
-import engine.graph.Geometry
 import engine.graph.LeafNode
 import engine.io.Keyboard
 import engine.io.Keys
 import engine.math.Matrix4
 import engine.math.Scalar
 import engine.math.Vector3
+import engine.physics.Constraint
 import engine.physics.RigidBody
 import engine.physics.Simulation
 import engine.tools.Scheduler
 
-class ShipNode(geometry: Geometry, camera: Camera, events: EventBus, simulation: Simulation, scheduler: Scheduler) : BranchNode() {
+class ShipNode(prefab: Prefab, camera: Camera, events: EventBus, simulation: Simulation, scheduler: Scheduler) : BranchNode() {
+    private val body = RigidBody(prefab.generateHull())
     private var angularSpeed = Scalar.PI
-    private var thrustSpeed = 20F
-    private var radians = 0F
-    private val body = RigidBody().apply { dampingFactor = 0.5F }
+    private var thrustSpeed = 200F
 
     override fun update(seconds: Float): Boolean {
         val keyboard = Keyboard.getState()
-        when {
-            keyboard.isKeyDown(Keys.Left) -> radians += angularSpeed * seconds
-            keyboard.isKeyDown(Keys.Right) -> radians -= angularSpeed * seconds
+        val rotation = when {
+            keyboard.isKeyDown(Keys.Left) -> angularSpeed * seconds
+            keyboard.isKeyDown(Keys.Right) -> -angularSpeed * seconds
+            else -> 0F
         }
-        body.orientation = Matrix4.createRotationZ(radians)
+
+        if (rotation != 0F) {
+            body.orientation = body.orientation * Matrix4.createRotationZ(rotation)
+            body.angularVelocity = Vector3.ZERO
+        }
+
         if (keyboard.isKeyDown(Keys.Up)) body.addForce(body.orientation * Vector3(0F, thrustSpeed, 0F))
+
         return super.update(seconds)
     }
 
     init {
+        body.skin.friction = 0F
+        body.skin.restitution = 1F
+        body.mass = 10F
         body.data = ObjectTypes.SHIP
-        body.boundingSphere = localBounds.radius
         simulation.addBody(body)
+        simulation.constraints += LockZAxis(body)
+        simulation.constraints += OnlyZRotation(body)
 
-        addNodes(LeafNode(geometry), GunNode(events, simulation, scheduler, Matrix4.createTranslation(0F, 2F, 0F)))
+        addNodes(LeafNode(prefab.geometry), GunNode(events, simulation, scheduler, Matrix4.createTranslation(0F, 0.6F, 0F)))
         addComponents(Physics(body), WrapAround(camera) { body.position = it })
+    }
+
+    private companion object {
+        class OnlyZRotation(val body: RigidBody) : Constraint {
+            override fun apply(dt: Float) {
+                body.angularVelocity = Vector3.clamp(body.angularVelocity, -Vector3.UNIT_Z, Vector3.UNIT_Z)
+            }
+        }
     }
 }

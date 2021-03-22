@@ -55,6 +55,13 @@ class Assembler {
         faces.add(Face(v, vn, vt, currentMaterial))
     }
 
+    fun center() {
+        val cog = vertices.fold(Vector3.ZERO, { acc, cur -> acc + cur }) / vertices.size.toFloat()
+        val centered = vertices.map { it - cog }
+        vertices.clear()
+        vertices.addAll(centered)
+    }
+
     fun build(type: BuildType = BuildType.Model): Geometry {
         val count = Mesh.VERTICES_PER_FACE * Mesh.ELEMENTS_PER_VERTEX
         return when (type) {

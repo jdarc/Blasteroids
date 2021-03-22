@@ -17,14 +17,9 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package engine.physics
 
-import engine.math.Aabb
-import engine.math.Vector3
-
-interface Geometry : Renderable {
-    val vertexCount: Int
-    val triangleCount: Int
-    val vertices: Array<Vector3>
-    val bounds: Aabb
+class CollisionEvent(val body0: RigidBody, val body1: RigidBody) {
+    fun involves(body: RigidBody) = body == body0 || body == body1
+    fun hasData(data: Any) = data == body0.data || data == body1.data
 }

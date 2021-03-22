@@ -17,14 +17,9 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package engine.physics
 
-import engine.math.Aabb
-import engine.math.Vector3
-
-interface Geometry : Renderable {
-    val vertexCount: Int
-    val triangleCount: Int
-    val vertices: Array<Vector3>
-    val bounds: Aabb
+interface Constraint {
+    fun apply(dt: Float)
 }
+

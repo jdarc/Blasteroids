@@ -22,9 +22,12 @@ package engine.math
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.get
 import org.khronos.webgl.set
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 data class Vector3(val x: Float, val y: Float, val z: Float) {
 
     constructor(s: Float) : this(s, s, s)
@@ -43,7 +46,11 @@ data class Vector3(val x: Float, val y: Float, val z: Float) {
 
     operator fun times(rhs: Float) = Vector3(x * rhs, y * rhs, z * rhs)
 
+    operator fun times(rhs: Vector3) = Vector3(x * rhs.x, y * rhs.y, z * rhs.z)
+
     operator fun div(rhs: Float) = Vector3(x / rhs, y / rhs, z / rhs)
+
+    operator fun div(rhs: Vector3) = Vector3(x / rhs.x, y / rhs.y, z / rhs.z)
 
     fun toArray(dst: Float32Array = Float32Array(3), offset: Int = 0) = dst.apply {
         this[offset + 0] = x
@@ -52,6 +59,8 @@ data class Vector3(val x: Float, val y: Float, val z: Float) {
     }
 
     companion object {
+        private const val EPSILON = 0.00001F
+
         val ONE = Vector3(1F, 1F, 1F)
         val ZERO = Vector3(0F, 0F, 0F)
 
@@ -62,28 +71,33 @@ data class Vector3(val x: Float, val y: Float, val z: Float) {
         val POSITIVE_INFINITY = Vector3(Float.POSITIVE_INFINITY)
         val NEGATIVE_INFINITY = Vector3(Float.NEGATIVE_INFINITY)
 
+        fun isZero(v: Vector3) = abs(v.x) < EPSILON && abs(v.y) < EPSILON && abs(v.z) < EPSILON
+
+        fun abs(value: Vector3) = Vector3(abs(value.x), abs(value.y), abs(value.z))
+
+        fun maxComponent(v: Vector3) = max(v.x, max(v.y, v.z))
+
+        fun minComponent(v: Vector3) = min(v.x, min(v.y, v.z))
+
+        fun min(a: Vector3, b: Vector3) = Vector3(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z))
+
+        fun max(a: Vector3, b: Vector3) = Vector3(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z))
+
+        fun clamp(value: Vector3, min: Vector3, max: Vector3) = min(max, max(value, min))
+
+        fun clamp(v: Vector3, min: Float, max: Float) = Vector3(v.x.coerceIn(min, max), v.y.coerceIn(min, max), v.z.coerceIn(min, max))
+
         fun dot(lhs: Vector3, rhs: Vector3) = (lhs.x * rhs.x) + (lhs.y * rhs.y) + (lhs.z * rhs.z)
 
-        fun normalize(v: Vector3) = v / v.length
+        fun cross(a: Vector3, b: Vector3) = Vector3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x)
 
-        fun cross(lhs: Vector3, rhs: Vector3) = Vector3(
-            (lhs.y * rhs.z) - (lhs.z * rhs.y),
-            (lhs.z * rhs.x) - (lhs.x * rhs.z),
-            (lhs.x * rhs.y) - (lhs.y * rhs.x)
-        )
+        fun normalize(v: Vector3) = v * Scalar.invSqrt(dot(v, v))
 
         fun equals(lhs: Vector3, rhs: Vector3, epsilon: Float = Scalar.EPSILON) =
             Scalar.equals(lhs.x, rhs.x, epsilon) &&
             Scalar.equals(lhs.y, rhs.y, epsilon) &&
             Scalar.equals(lhs.z, rhs.z, epsilon)
 
-        fun clamp(v: Vector3, min: Float = 0F, max: Float = 1F) = Vector3(
-            v.x.coerceIn(min, max),
-            v.y.coerceIn(min, max),
-            v.z.coerceIn(min, max)
-        )
-
-        fun random(x: Float = 1F, y: Float = 1F, z: Float = 1F) =
-            normalize(Vector3(x * Scalar.random(), y * Scalar.random(), z * Scalar.random()))
+        fun random(x: Float = 1F, y: Float = 1F, z: Float = 1F) = normalize(Vector3(x * Scalar.rnd(), y * Scalar.rnd(), z * Scalar.rnd()))
     }
 }

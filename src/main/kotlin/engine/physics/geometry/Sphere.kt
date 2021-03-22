@@ -17,14 +17,13 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package engine.physics.geometry
 
-import engine.math.Aabb
 import engine.math.Vector3
 
-interface Geometry : Renderable {
-    val vertexCount: Int
-    val triangleCount: Int
-    val vertices: Array<Vector3>
-    val bounds: Aabb
+class Sphere(private val radius: Float) : Shape() {
+
+    override val boundingSphere get() = radius
+
+    override fun getSupport(direction: Vector3) = origin + direction * (radius / direction.length)
 }

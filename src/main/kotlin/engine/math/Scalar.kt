@@ -30,8 +30,12 @@ object Scalar {
     const val PI = 3.14159265359F
     const val TAU = 6.28318530718F
     const val EPSILON = 0.00000001F
+    const val TINY = 0.00001F
+    const val HUGE = 100000F
 
     fun equals(a: Float, b: Float, epsilon: Float = EPSILON) = !(a - b).isNaN() && abs(a - b) <= epsilon
+
+    fun invSqrt(n: Float) = 1F / sqrt(n)
 
     fun hypot(x: Float, y: Float, z: Float) = sqrt(x.sqr() + y.sqr() + z.sqr())
 
@@ -41,7 +45,7 @@ object Scalar {
 
     fun toDegrees(radians: Float) = radians * 180F / PI
 
-    fun random(from: Float = -1F, to: Float = 1F) = Random.nextDouble(from.toDouble(), to.toDouble()).toFloat()
+    fun rnd(from: Float = -1F, to: Float = 1F) = Random.nextDouble(from.toDouble(), to.toDouble()).toFloat()
 
     fun Float.sqr() = this.pow(2)
 

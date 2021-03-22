@@ -19,4 +19,10 @@
 
 package game
 
-enum class ObjectTypes { SHIP, MISSILE, ASTEROID }
+enum class ObjectTypes(val mask: Int) {
+    SHIP(1),
+    MISSILE(2),
+    ASTEROID(4);
+
+    operator fun plus(other: ObjectTypes) = mask + other.mask
+}

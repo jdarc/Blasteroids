@@ -22,10 +22,10 @@ package game
 import engine.components.LightSource
 import engine.core.*
 import engine.graph.BranchNode
-import engine.graph.Geometry
 import engine.graph.Scene
 import engine.math.Scalar
 import engine.math.Vector3
+import engine.physics.RigidBody
 import engine.physics.Simulation
 import engine.tools.Scheduler
 import game.AsteroidNode.Companion.ASTEROID_CREATED
@@ -42,22 +42,22 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
     private val camera = Camera(fov = Scalar.PI / 8F)
     private val scene = Scene()
     private val events = EventBus()
-    private val simulation = Simulation(events)
+    private val simulation = Simulation(events, ::detectCollisions)
 
     suspend fun run() {
         window.addEventListener("webglcontextlost", { GlobalScope.launch { device.initialize() } })
         device.initialize()
         camera.position = Vector3(0F, 0F, 120F)
 
-        val shipGeometry = Loader.read("models", "fighter.obj")
-        val asteroid1Geometry = Loader.read("models", "asteroid1.obj")
-        val asteroid2Geometry = Loader.read("models", "asteroid2.obj")
-        val asteroids = arrayOf(asteroid1Geometry, asteroid2Geometry)
+        val ship = Prefab(Loader.read("models", "fighter.obj"))
+        val asteroid1 = Prefab(Loader.read("models", "asteroid1.obj"))
+        val asteroid2 = Prefab(Loader.read("models", "asteroid2.obj"))
+        val asteroids = arrayOf(asteroid1, asteroid2)
 
         val arena = BranchNode()
         arena.addComponents(LightSource(0, Color.WHITE, Vector3(0F, 30F, 20F)))
 
-        arena.addNodes(ShipNode(shipGeometry, camera, events, simulation, scheduler))
+        arena.addNodes(ShipNode(ship, camera, events, simulation, scheduler))
 
         var level = 1
         var asteroidsCount = 0
@@ -78,15 +78,20 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         GameLoop(this).start()
     }
 
-    private fun spawnAsteroid(level: Int, arena: BranchNode, asteroids: Array<Geometry>) {
-        scheduler.schedule(0.1F, (level + 4) / 10F) { arena.addNodes(AsteroidNode(asteroids, camera, events, simulation, 0)) }
-    }
-
     override fun update(timeStep: Float) {
         scheduler.update(timeStep)
-        simulation.update(timeStep)
+        simulation.integrate(timeStep)
         scene.update(timeStep)
     }
 
     override fun render() = scene.render(camera, device)
+
+    private fun spawnAsteroid(level: Int, arena: BranchNode, asteroids: Array<Prefab>) {
+        scheduler.schedule(0.1F, (level + 4) / 10F) { arena.addNodes(AsteroidNode(asteroids, camera, events, simulation, 0)) }
+    }
+
+    private fun detectCollisions(body0: RigidBody, body1: RigidBody): Boolean {
+        val mask = (body0.data as ObjectTypes).mask or (body1.data as ObjectTypes).mask
+        return mask != ObjectTypes.SHIP + ObjectTypes.MISSILE
+    }
 }

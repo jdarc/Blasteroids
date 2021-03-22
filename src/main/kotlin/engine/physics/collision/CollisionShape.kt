@@ -17,11 +17,13 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.physics
+package engine.physics.collision
 
+import engine.math.Matrix4
 import engine.math.Vector3
 
-class CollisionInfo(val body0: RigidBody, val body1: RigidBody, val dirToBody0: Vector3, val collisionPoint: Vector3) {
-    fun involves(body: RigidBody) = body == body0 || body == body1
-    fun hasData(data: Any) = data == body0.data || data == body1.data
+interface CollisionShape {
+    val origin: Vector3
+    val basis: Matrix4
+    fun getSupport(direction: Vector3): Vector3
 }

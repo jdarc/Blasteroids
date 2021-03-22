@@ -17,14 +17,30 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package engine.physics.geometry
 
-import engine.math.Aabb
+import engine.math.Matrix4
+import engine.math.Scalar
 import engine.math.Vector3
+import engine.physics.collision.CollisionShape
 
-interface Geometry : Renderable {
-    val vertexCount: Int
-    val triangleCount: Int
-    val vertices: Array<Vector3>
-    val bounds: Aabb
+abstract class Shape : CollisionShape {
+
+    override var origin = Vector3.ZERO
+
+    override var basis = Matrix4.IDENTITY
+
+    open val boundingSphere get() = Scalar.HUGE
+
+    var restitution = 0.2F
+        set(value) {
+            field = value.coerceIn(0F, 1F)
+        }
+
+    var friction = 0.5F
+        set(value) {
+            field = value.coerceIn(0F, 1F)
+        }
+
+    open fun calculateBodyInertia(mass: Float) = Matrix4.createScale(0.4F * mass * boundingSphere * boundingSphere)
 }

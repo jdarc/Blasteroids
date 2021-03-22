@@ -17,14 +17,29 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package engine.physics.collision
 
-import engine.math.Aabb
-import engine.math.Vector3
+import engine.physics.RigidBody
 
-interface Geometry : Renderable {
-    val vertexCount: Int
-    val triangleCount: Int
-    val vertices: Array<Vector3>
-    val bounds: Aabb
+class CollisionSystem(private val canCollide: (RigidBody, RigidBody) -> Boolean) {
+    val bodies = mutableSetOf<RigidBody>()
+
+    fun detect(listener: CollisionListener) {
+        for (body0 in bodies) {
+            for (body1 in bodies) {
+                if (body0.id < body1.id && canCollide(body0, body1) && body0.hitTest(body1)) {
+                    val result = GjkEpaSolver.collide(body0.skin, body1.skin, COLLISION_TOLERANCE)
+                    if (result.hasCollided) {
+                        val r0 = result.pointA - body0.skin.origin
+                        val r1 = result.pointB - body1.skin.origin
+                        listener.collisionNotify(body0, body1, result.normal, r0, r1, result.depth)
+                    }
+                }
+            }
+        }
+    }
+
+    private companion object {
+        const val COLLISION_TOLERANCE = 0.01F
+    }
 }

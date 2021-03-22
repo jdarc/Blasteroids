@@ -17,14 +17,21 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package game
 
-import engine.math.Aabb
+import engine.graph.Geometry
 import engine.math.Vector3
+import engine.physics.geometry.Hull
+import engine.tools.convexhull.ConvexHull
+import engine.tools.convexhull.Point3D
 
-interface Geometry : Renderable {
-    val vertexCount: Int
-    val triangleCount: Int
-    val vertices: Array<Vector3>
-    val bounds: Aabb
+class Prefab(val geometry: Geometry) {
+    private val hullPoints = fromVertexBuffer(ConvexHull().build(toVertexBuffer(geometry.vertices.toList())).points)
+
+    fun generateHull(scale: Float = 1F) = Hull(hullPoints, scale)
+
+    private companion object {
+        fun toVertexBuffer(vertices: List<Vector3>) = vertices.map { (x, y, z) -> Point3D(x, y, z) }
+        fun fromVertexBuffer(points: List<Point3D>) = points.map { (x, y, z) -> Vector3(x, y, z) }.toTypedArray()
+    }
 }

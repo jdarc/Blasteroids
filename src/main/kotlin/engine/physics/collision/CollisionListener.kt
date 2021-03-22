@@ -17,14 +17,11 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package engine.physics.collision
 
-import engine.math.Aabb
 import engine.math.Vector3
+import engine.physics.RigidBody
 
-interface Geometry : Renderable {
-    val vertexCount: Int
-    val triangleCount: Int
-    val vertices: Array<Vector3>
-    val bounds: Aabb
+interface CollisionListener {
+    fun collisionNotify(body0: RigidBody, body1: RigidBody, normal: Vector3, r0: Vector3, r1: Vector3, penetration: Float)
 }

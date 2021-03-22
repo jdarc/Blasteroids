@@ -17,14 +17,19 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.graph
+package game
 
-import engine.math.Aabb
 import engine.math.Vector3
+import engine.physics.Constraint
+import engine.physics.RigidBody
 
-interface Geometry : Renderable {
-    val vertexCount: Int
-    val triangleCount: Int
-    val vertices: Array<Vector3>
-    val bounds: Aabb
+class LockZAxis(private val body: RigidBody) : Constraint {
+
+    override fun apply(dt: Float) {
+        body.linearVelocity = body.linearVelocity * MASK
+    }
+
+    private companion object {
+        val MASK = Vector3(1F, 1F, 0F)
+    }
 }

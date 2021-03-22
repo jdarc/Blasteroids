@@ -62,6 +62,7 @@ object Loader {
                 }
             }
         }
+        factory.center()
         factory.build()
     }
 

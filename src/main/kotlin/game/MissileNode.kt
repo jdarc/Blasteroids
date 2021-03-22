@@ -28,14 +28,15 @@ import engine.graph.BranchNode
 import engine.graph.LeafNode
 import engine.math.Matrix4
 import engine.math.Vector3
-import engine.physics.CollisionInfo
+import engine.physics.CollisionEvent
 import engine.physics.RigidBody
 import engine.physics.Simulation
 import engine.physics.Simulation.Companion.COLLISION_EVENT
+import engine.physics.geometry.Sphere
 import engine.tools.Subscriber
 
 class MissileNode(private val eventBus: EventBus, private val simulation: Simulation) : BranchNode(), Subscriber<Any> {
-    private val body = RigidBody()
+    private val body: RigidBody
 
     override fun update(seconds: Float): Boolean {
         transform = Matrix4.create(body.position, Matrix4.IDENTITY, Vector3.ONE)
@@ -44,7 +45,7 @@ class MissileNode(private val eventBus: EventBus, private val simulation: Simula
 
     fun fire(origin: Vector3, direction: Vector3) {
         body.position = origin
-        body.velocity = direction * speed
+        body.linearVelocity = direction * speed
     }
 
     fun destroy() {
@@ -55,15 +56,16 @@ class MissileNode(private val eventBus: EventBus, private val simulation: Simula
 
     init {
         addNodes(LeafNode(MISSILE_GEOMETRY))
-        addComponents(MaterialOverride(MISSILE_MATERIAL), Physics(body))
+        body = RigidBody(Sphere(localBounds.radius))
+        body.mass = 0.1F
         body.data = ObjectTypes.MISSILE
-        body.boundingSphere = localBounds.radius
         simulation.addBody(body)
+        addComponents(MaterialOverride(MISSILE_MATERIAL), Physics(body))
         eventBus.subscribe(COLLISION_EVENT, this)
     }
 
     override fun notify(context: Any) {
-        if (context is CollisionInfo && context.involves(body) && context.hasData(ObjectTypes.ASTEROID)) destroy()
+        if (context is CollisionEvent && context.involves(body) && context.hasData(ObjectTypes.ASTEROID)) destroy()
     }
 
     companion object {

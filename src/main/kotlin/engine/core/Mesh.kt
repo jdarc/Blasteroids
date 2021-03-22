@@ -22,12 +22,15 @@ package engine.core
 import engine.graph.Geometry
 import engine.graph.Renderer
 import engine.math.Aabb
+import engine.math.Vector3
 
 class Mesh(private val data: FloatArray, private val count: Int) : Geometry {
 
     override val vertexCount = data.size / ELEMENTS_PER_VERTEX
 
     override val triangleCount = count / VERTICES_PER_FACE
+
+    override val vertices = data.toList().windowed(3, 8) { (x, y, z) -> Vector3(x, y, z) }.toTypedArray()
 
     override val bounds = data.toList().windowed(3, 8).fold(Aabb(), { acc, src -> acc.aggregate(src[0], src[1], src[2]) })
 

@@ -74,10 +74,10 @@ data class Matrix4(
     )
 
     operator fun times(rhs: Vector3): Vector3 {
-        val x = rhs.x * m00 + rhs.y * m01 + rhs.z * m02 + m03
-        val y = rhs.x * m10 + rhs.y * m11 + rhs.z * m12 + m13
-        val z = rhs.x * m20 + rhs.y * m21 + rhs.z * m22 + m23
-        val w = rhs.x * m30 + rhs.y * m31 + rhs.z * m32 + m33
+        val x = m00 * rhs.x + m01 * rhs.y + m02 * rhs.z + m03
+        val y = m10 * rhs.x + m11 * rhs.y + m12 * rhs.z + m13
+        val z = m20 * rhs.x + m21 * rhs.y + m22 * rhs.z + m23
+        val w = m30 * rhs.x + m31 * rhs.y + m32 * rhs.z + m33
         return Vector3(x / w, y / w, z / w)
     }
 

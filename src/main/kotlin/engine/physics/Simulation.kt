@@ -19,41 +19,107 @@
 
 package engine.physics
 
+import engine.math.Scalar
 import engine.math.Vector3
+import engine.physics.collision.CollisionListener
+import engine.physics.collision.CollisionSystem
 import game.EventBus
+import kotlin.math.max
+import kotlin.math.min
 
-class Simulation(private val events: EventBus) {
+class Simulation(private val events: EventBus, collisionFilter: (RigidBody, RigidBody) -> Boolean) : CollisionListener {
+    private val collisionSystem = CollisionSystem(collisionFilter)
+    private val collisions = mutableListOf<Collision>()
     private val bodies = mutableSetOf<RigidBody>()
+
+    val constraints = mutableSetOf<Constraint>()
 
     fun addBody(body: RigidBody) {
         bodies.add(body)
+        collisionSystem.bodies.add(body)
     }
 
     fun removeBody(body: RigidBody) {
         bodies.remove(body)
+        collisionSystem.bodies.remove(body)
     }
 
-    fun update(timeStep: Float) {
-        bodies.forEach {
-            it.integrate(timeStep)
+    override fun collisionNotify(body0: RigidBody, body1: RigidBody, normal: Vector3, r0: Vector3, r1: Vector3, penetration: Float) {
+        collisions.add(Collision(body0, body1, normal, r0, r1, penetration))
+        events.notify(COLLISION_EVENT, CollisionEvent(body0, body1))
+    }
+
+    fun integrate(dt: Float) {
+        collisions.clear()
+        collisionSystem.detect(this)
+        collisions.forEach { processCollision(it, dt) }
+        constraints.forEach { it.apply(dt) }
+        bodies.toTypedArray().forEach {
+            it.integrate(dt)
             it.clearForces()
         }
-        detectCollisions()
     }
 
-    private fun detectCollisions() {
-        for (body0 in bodies) {
-            for (body1 in bodies) {
-                if (body0 != body1 && body0.hitTest(body1)) {
-                    val dirToBody0 = Vector3.normalize(body0.position - body1.position)
-                    val collisionPoint = body1.position + dirToBody0 * body1.boundingSphere
-                    events.notify(COLLISION_EVENT, CollisionInfo(body0, body1, dirToBody0, collisionPoint))
-                }
-            }
-        }
+    private fun processCollision(collision: Collision, dt: Float) {
+        val tolerance = 1F / (Scalar.TINY + ALLOWED_PENETRATION)
+        val body0 = collision.body0
+        val body1 = collision.body1
+        val normal = collision.normal
+        val r0 = collision.r0
+        val r1 = collision.r1
+        val penetration = collision.penetration
+
+        var denominator = body0.inverseMass + Vector3.dot(normal, Vector3.cross(body0.worldInvInertia * Vector3.cross(r0, normal), r0)) +
+                          body1.inverseMass + Vector3.dot(normal, Vector3.cross(body1.worldInvInertia * Vector3.cross(r1, normal), r1))
+
+        val diffPenetration = penetration - ALLOWED_PENETRATION
+        var minSeparationVel = if (penetration > ALLOWED_PENETRATION) diffPenetration / dt
+        else (-0.1F * diffPenetration * tolerance).coerceIn(Scalar.TINY, 1F) * diffPenetration / max(dt, Scalar.TINY)
+
+        denominator = max(denominator, Scalar.TINY)
+        minSeparationVel = min(minSeparationVel, MAX_VEL_MAG)
+
+        val normalVel = Vector3.dot(body0.velocityRelativeTo(r0) - body1.velocityRelativeTo(r1), normal)
+        if (normalVel > minSeparationVel) return
+
+        var finalNormalVel = -collision.restitution * normalVel
+        if (finalNormalVel < MIN_VEL_FOR_PROCESSING) finalNormalVel = minSeparationVel
+
+        val deltaVel = finalNormalVel - normalVel
+        if (deltaVel <= MIN_VEL_FOR_PROCESSING) return
+
+        if (denominator < Scalar.TINY) denominator = Scalar.TINY
+        val normalImpulse = deltaVel / denominator
+
+        body0.applyImpulse(normal * normalImpulse, r0)
+        body1.applyImpulse(-normal * normalImpulse, r1)
+
+        val vrNew = body0.velocityRelativeTo(r0) - body1.velocityRelativeTo(r1)
+        var tangentVel = normal * Vector3.dot(vrNew, normal) - vrNew
+        val tangentSpeed = tangentVel.length
+        if (tangentSpeed < MIN_VEL_FOR_PROCESSING) return
+        tangentVel /= tangentSpeed
+
+        denominator = body0.inverseMass + Vector3.dot(tangentVel, Vector3.cross(body0.worldInvInertia * Vector3.cross(r0, tangentVel), r0)) +
+                      body1.inverseMass + Vector3.dot(tangentVel, Vector3.cross(body1.worldInvInertia * Vector3.cross(r1, tangentVel), r1))
+        if (denominator < Scalar.TINY) return
+
+        val impulseToReserve = tangentSpeed / denominator
+        val i = if (impulseToReserve < collision.friction * normalImpulse) impulseToReserve else collision.friction * normalImpulse
+        body0.applyImpulse(tangentVel * i, r0)
+        body1.applyImpulse(-tangentVel * i, r1)
     }
 
     companion object {
         const val COLLISION_EVENT = "collision"
+
+        private const val ALLOWED_PENETRATION = 0.01F
+        private const val MAX_VEL_MAG = 0.5F
+        private const val MIN_VEL_FOR_PROCESSING = 0.0001F
+
+        private class Collision(val body0: RigidBody, val body1: RigidBody, val normal: Vector3, val r0: Vector3, val r1: Vector3, val penetration: Float) {
+            val friction = (body0.skin.friction + body1.skin.friction) * 0.5F
+            var restitution = (body0.skin.restitution + body1.skin.restitution) * 0.5F
+        }
     }
 }
