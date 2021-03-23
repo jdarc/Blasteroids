@@ -45,10 +45,10 @@ class ConvexHull {
                 bringOutYourDead(hr.vertices, hr.vertexCount, vertexScratch, outVertexCount, hr.indices, hr.indexCount)
                 val hullPoints = (0 until outVertexCount[0]).map { Point3D(vertexScratch[it]) }
                 val indices = (0 until hr.indexCount).map { hr.indices[it] }.toIntArray()
-                return HullResult(hullPoints, true)
+                return HullResult(hullPoints, indices, true)
             }
         }
-        return HullResult(emptyList(), false)
+        return HullResult(emptyList(), IntArray(0), false)
     }
 
     private fun computeHull(numVertices: Int, vertices: MutableList<Vec3>, result: PHullResult, vertexLimit: Int): Boolean {

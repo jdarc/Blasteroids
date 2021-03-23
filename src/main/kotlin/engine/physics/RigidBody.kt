@@ -124,8 +124,8 @@ class RigidBody(val skin: Shape) {
 
     private fun updateInertia() {
         invOrientation = Matrix4.transpose(orientation)
-        worldInertia = bodyInertia * orientation * invOrientation
-        worldInvInertia = bodyInvInertia * orientation * invOrientation
+        worldInertia = orientation * bodyInertia * invOrientation
+        worldInvInertia = orientation * bodyInvInertia * invOrientation
     }
 
     private fun addAngularVelocityToOrientation(angularVelocity: Vector3, orientation: Matrix4, dt: Float): Matrix4 {

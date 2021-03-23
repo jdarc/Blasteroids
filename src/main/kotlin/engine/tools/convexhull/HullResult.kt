@@ -14,4 +14,5 @@
 
 package engine.tools.convexhull
 
-class HullResult(val points: List<Point3D>, val success: Boolean = false)
+@Suppress("unused", "UNUSED_PARAMETER")
+class HullResult(val points: List<Point3D>, indices: IntArray, val success: Boolean = false)
