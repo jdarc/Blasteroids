@@ -22,16 +22,16 @@ package game
 import engine.graph.Geometry
 import engine.math.Vector3
 import engine.physics.geometry.Hull
-import engine.tools.convexhull.ConvexHull
+import engine.tools.convexhull.HullMaker
 import engine.tools.convexhull.Point3D
 
 class Prefab(val geometry: Geometry) {
-    private val hullPoints = fromVertexBuffer(ConvexHull().build(toVertexBuffer(geometry.vertices.toList())).points)
+    private val hullPoints = fromVertexBuffer(HullMaker().build(toVertexBuffer(geometry.vertices)).vertices)
 
     fun generateHull(scale: Float = 1F) = Hull(hullPoints, scale)
 
     private companion object {
-        fun toVertexBuffer(vertices: List<Vector3>) = vertices.map { (x, y, z) -> Point3D(x, y, z) }
-        fun fromVertexBuffer(points: List<Point3D>) = points.map { (x, y, z) -> Vector3(x, y, z) }.toTypedArray()
+        fun toVertexBuffer(vertices: Array<Vector3>) = vertices.map { (x, y, z) -> Point3D(x, y, z) }.toTypedArray()
+        fun fromVertexBuffer(points: Array<Point3D>) = points.map { (x, y, z) -> Vector3(x, y, z) }.toTypedArray()
     }
 }

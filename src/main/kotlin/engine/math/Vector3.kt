@@ -30,6 +30,8 @@ import kotlin.math.sqrt
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 data class Vector3(val x: Float, val y: Float, val z: Float) {
 
+    constructor(x: Double, y: Double, z: Double) : this(x.toFloat(), y.toFloat(), z.toFloat())
+
     constructor(s: Float) : this(s, s, s)
 
     constructor(src: Float32Array, offset: Int = 0) : this(src[offset + 0], src[offset + 1], src[offset + 2])
