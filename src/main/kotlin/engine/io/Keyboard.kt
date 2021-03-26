@@ -24,20 +24,29 @@ import org.w3c.dom.events.KeyboardEvent
 
 object Keyboard {
     private val mapper = Keys.values().map { Pair(it.code, it) }.toMap()
-    private val state = BooleanArray(Keys.values().size)
-    private val capture = BooleanArray(Keys.values().size)
+    private val captureState = BooleanArray(Keys.values().size)
+    private val currentState = BooleanArray(Keys.values().size)
+    private var current = KeyBoardState(currentState)
+    private var dirty = true
 
-    fun getState() = KeyBoardState(state.copyInto(capture))
+    val state: KeyBoardState
+        get() {
+            if (dirty) {
+                current = KeyBoardState(captureState.copyInto(currentState))
+                dirty = false
+            }
+            return current
+        }
 
     init {
         window.addEventListener("keydown", {
-            it as KeyboardEvent
-            state[mapper[it.code]?.ordinal ?: 0] = true
+            captureState[mapper[(it as KeyboardEvent).code]?.ordinal ?: 0] = true
+            dirty = true
         })
 
         window.addEventListener("keyup", {
-            it as KeyboardEvent
-            state[mapper[it.code]?.ordinal ?: 0] = false
+            captureState[mapper[(it as KeyboardEvent).code]?.ordinal ?: 0] = false
+            dirty = true
         })
     }
 }

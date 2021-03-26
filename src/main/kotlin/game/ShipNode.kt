@@ -40,10 +40,9 @@ class ShipNode(prefab: Prefab, camera: Camera, events: EventBus, simulation: Sim
     private var thrustSpeed = 200F
 
     override fun update(seconds: Float): Boolean {
-        val keyboard = Keyboard.getState()
         val rotation = when {
-            keyboard.isKeyDown(Keys.Left) -> angularSpeed * seconds
-            keyboard.isKeyDown(Keys.Right) -> -angularSpeed * seconds
+            Keyboard.state.isKeyDown(Keys.Left) -> angularSpeed * seconds
+            Keyboard.state.isKeyDown(Keys.Right) -> -angularSpeed * seconds
             else -> 0F
         }
 
@@ -52,7 +51,7 @@ class ShipNode(prefab: Prefab, camera: Camera, events: EventBus, simulation: Sim
             body.angularVelocity = Vector3.ZERO
         }
 
-        if (keyboard.isKeyDown(Keys.Up)) body.addForce(body.orientation * Vector3(0F, thrustSpeed, 0F))
+        if (Keyboard.state.isKeyDown(Keys.Up)) body.addForce(body.orientation * Vector3(0F, thrustSpeed, 0F))
 
         return super.update(seconds)
     }
@@ -66,7 +65,7 @@ class ShipNode(prefab: Prefab, camera: Camera, events: EventBus, simulation: Sim
         simulation.constraints += LockZAxis(body)
         simulation.constraints += OnlyZRotation(body)
 
-        addNodes(LeafNode(prefab.geometry), GunNode(events, simulation, scheduler, Matrix4.createTranslation(0F, 0.6F, 0F)))
+        addNodes(LeafNode(prefab.geometry), GunNode(events, simulation, scheduler, Matrix4.createTranslation(0F, 2.2F, 0F)))
         addComponents(Physics(body), WrapAround(camera) { body.position = it })
     }
 

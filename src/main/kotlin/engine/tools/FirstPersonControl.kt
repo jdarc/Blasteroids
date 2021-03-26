@@ -33,21 +33,20 @@ class FirstPersonControl(private val camera: Camera) {
     private var mouseY = 0
 
     fun update(seconds: Float, moveFactor: Float = 25F, lookFactor: Float = 0.25F) {
-        val keyboard = Keyboard.getState()
-        val mouse = Mouse.getState()
-
-        if (mouse.leftButton.isPressed) {
+        if (Mouse.state.leftButton.isPressed) {
             val lookRate = seconds * lookFactor
-            val yaw = camera.yaw + (mouseX - mouse.x) * lookRate
-            val pitch = (camera.pitch + (mouseY - mouse.y) * lookRate).coerceIn(-1.57F, 1.57F)
+            val yaw = camera.yaw + (mouseX - Mouse.state.x) * lookRate
+            val pitch = (camera.pitch + (mouseY - Mouse.state.y) * lookRate).coerceIn(-1.57F, 1.57F)
             camera.orient(Vector3(-sin(yaw) * cos(pitch), sin(pitch), -cos(yaw) * cos(pitch)))
         }
 
         val moveRate = seconds * moveFactor
-        if (keyboard.isKeyDown(Keys.W)) camera.moveForward(moveRate) else if (keyboard.isKeyDown(Keys.S)) camera.moveBackward(moveRate)
-        if (keyboard.isKeyDown(Keys.A)) camera.moveLeft(moveRate) else if (keyboard.isKeyDown(Keys.D)) camera.moveRight(moveRate)
+        if (Keyboard.state.isKeyDown(Keys.W)) camera.moveForward(moveRate)
+        else if (Keyboard.state.isKeyDown(Keys.S)) camera.moveBackward(moveRate)
+        if (Keyboard.state.isKeyDown(Keys.A)) camera.moveLeft(moveRate)
+        else if (Keyboard.state.isKeyDown(Keys.D)) camera.moveRight(moveRate)
 
-        mouseX = mouse.x
-        mouseY = mouse.y
+        mouseX = Mouse.state.x
+        mouseY = Mouse.state.y
     }
 }

@@ -1,17 +1,15 @@
 plugins {
-    kotlin("js") version "1.4.31"
+    kotlin("js") version "1.5.0-M1"
 }
 
-repositories {
-    mavenCentral()
-}
+repositories { mavenCentral() }
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
 }
 
 kotlin {
-    js(LEGACY) {
+    js(IR) {
         browser {
             webpackTask {
                 cssSupport.enabled = true

@@ -31,8 +31,17 @@ object Mouse {
     private var leftButton = ButtonState.Released
     private var middleButton = ButtonState.Released
     private var rightButton = ButtonState.Released
+    private var current = MouseState(0, 0, 0, ButtonState.Released, ButtonState.Released, ButtonState.Released)
+    private var dirty = true
 
-    fun getState() = MouseState(x, y, scrollWheel, leftButton, middleButton, rightButton)
+    val state: MouseState
+        get() {
+            if (dirty) {
+                current = MouseState(x, y, scrollWheel, leftButton, middleButton, rightButton)
+                dirty = false
+            }
+            return current
+        }
 
     private fun captureMouseState(event: MouseEvent) {
         x = event.x.toInt()
@@ -40,12 +49,10 @@ object Mouse {
         leftButton = if (event.buttons.toInt() and 0x1 != 0) ButtonState.Pressed else ButtonState.Released
         middleButton = if (event.buttons.toInt() and 0x2 != 0) ButtonState.Pressed else ButtonState.Released
         rightButton = if (event.buttons.toInt() and 0x4 != 0) ButtonState.Pressed else ButtonState.Released
+        dirty = true
     }
 
-    private fun captureWheelState(event: WheelEvent) {
-        captureMouseState(event)
-        scrollWheel += sign(event.deltaY).toInt()
-    }
+    private fun captureWheelState(event: WheelEvent) = captureMouseState(event).also { scrollWheel += sign(event.deltaY).toInt() }
 
     init {
         window.addEventListener("mousedown", { captureMouseState(it as MouseEvent) })

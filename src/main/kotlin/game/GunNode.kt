@@ -40,7 +40,7 @@ class GunNode(
 
     override fun update(seconds: Float): Boolean {
         timer += seconds
-        if (Keyboard.getState().isKeyDown(Keys.S)) fire()
+        if (Keyboard.state.isKeyDown(Keys.S)) fire()
         return super.update(seconds)
     }
 
