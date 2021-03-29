@@ -5,13 +5,13 @@ import engine.components.WrapAround
 import engine.core.Camera
 import engine.graph.BranchNode
 import engine.graph.LeafNode
+import engine.math.Scalar
 import engine.math.Vector3
 import engine.physics.CollisionEvent
 import engine.physics.RigidBody
 import engine.physics.Simulation
 import engine.physics.Simulation.Companion.COLLISION_EVENT
 import engine.tools.Subscriber
-import kotlin.random.Random
 
 class AsteroidNode(
     private val prefabs: Array<Prefab>,
@@ -21,8 +21,8 @@ class AsteroidNode(
     private val level: Int = 0
 ) : BranchNode(), Subscriber<Any> {
     private var energy = 8 shr level
-    private val size = (6F + 0.5F * Random.nextFloat()) / (1 shl level).toFloat()
-    private val speed = 1F + Random.nextFloat() * 8F / size
+    private val size = (6F + 0.5F * Scalar.rnd()) / (1 shl level).toFloat()
+    private val speed = 1F + Scalar.rnd() * 8F / size
     private val body: RigidBody
     private val lockZAxis: LockZAxis
 
@@ -51,7 +51,7 @@ class AsteroidNode(
         events.subscribe(COLLISION_EVENT, this)
         events.notify(ASTEROID_CREATED, this)
 
-        val prefab = prefabs[Random(hashCode()).nextInt(0, prefabs.size)]
+        val prefab = prefabs[Scalar.rnd(0, prefabs.size)]
 
         body = RigidBody(prefab.generateHull(size))
         body.skin.friction = 0F
@@ -59,8 +59,8 @@ class AsteroidNode(
         body.mass = 1000F * size
         body.data = ObjectTypes.ASTEROID
         body.position = Vector3.random(1F, 1F, 0F) * 30F
-        body.linearVelocity = Vector3.random(1F, 1F, 0F) * Random.nextFloat() * 5F * speed
-        body.angularVelocity = Vector3.random(1F, 1F, 1F) * Random.nextFloat() * 5F * speed
+        body.linearVelocity = Vector3.random(1F, 1F, 0F) * Scalar.rnd() * 5F * speed
+        body.angularVelocity = Vector3.random(1F, 1F, 1F) * Scalar.rnd() * 5F * speed
         lockZAxis = LockZAxis(body)
 
         simulation.addBody(body)

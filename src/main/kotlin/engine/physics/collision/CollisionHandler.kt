@@ -19,11 +19,9 @@
 
 package engine.physics.collision
 
-import engine.math.Matrix4
 import engine.math.Vector3
+import engine.physics.RigidBody
 
-interface CollisionShape {
-    val origin: Vector3
-    val basis: Matrix4
-    fun getSupport(direction: Vector3): Vector3
+interface CollisionHandler {
+    fun impact(body0: RigidBody, body1: RigidBody, normal: Vector3, r0: Vector3, r1: Vector3, penetration: Float)
 }

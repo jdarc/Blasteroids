@@ -20,14 +20,14 @@
 package engine.physics
 
 import engine.math.Scalar
+import engine.math.Scalar.max
+import engine.math.Scalar.min
 import engine.math.Vector3
-import engine.physics.collision.CollisionListener
+import engine.physics.collision.CollisionHandler
 import engine.physics.collision.CollisionSystem
 import game.EventBus
-import kotlin.math.max
-import kotlin.math.min
 
-class Simulation(private val events: EventBus, collisionFilter: (RigidBody, RigidBody) -> Boolean) : CollisionListener {
+class Simulation(private val events: EventBus, collisionFilter: (RigidBody, RigidBody) -> Boolean) : CollisionHandler {
     private val collisionSystem = CollisionSystem(collisionFilter)
     private val collisions = mutableListOf<Collision>()
     private val bodies = mutableSetOf<RigidBody>()
@@ -36,26 +36,39 @@ class Simulation(private val events: EventBus, collisionFilter: (RigidBody, Rigi
 
     fun addBody(body: RigidBody) {
         bodies.add(body)
-        collisionSystem.bodies.add(body)
     }
 
     fun removeBody(body: RigidBody) {
         bodies.remove(body)
-        collisionSystem.bodies.remove(body)
     }
 
-    override fun collisionNotify(body0: RigidBody, body1: RigidBody, normal: Vector3, r0: Vector3, r1: Vector3, penetration: Float) {
+    override fun impact(body0: RigidBody, body1: RigidBody, normal: Vector3, r0: Vector3, r1: Vector3, penetration: Float) {
         collisions.add(Collision(body0, body1, normal, r0, r1, penetration))
         events.notify(COLLISION_EVENT, CollisionEvent(body0, body1))
     }
 
     fun integrate(dt: Float) {
+        val bodies = bodies.toTypedArray()
+
+        bodies.forEach {
+            it.storeState()
+            it.updateVelocity(dt)
+            it.updatePosition(dt)
+        }
+
         collisions.clear()
-        collisionSystem.detect(this)
+        collisionSystem.detect(bodies, this)
+
+        bodies.forEach { it.restoreState() }
+
         collisions.forEach { processCollision(it, dt) }
+
+        for (body in bodies) body.updateVelocity(dt)
+
         constraints.forEach { it.apply(dt) }
-        bodies.toTypedArray().forEach {
-            it.integrate(dt)
+
+        bodies.forEach {
+            it.updatePosition(dt)
             it.clearForces()
         }
     }
@@ -91,12 +104,12 @@ class Simulation(private val events: EventBus, collisionFilter: (RigidBody, Rigi
         if (denominator < Scalar.TINY) denominator = Scalar.TINY
         val normalImpulse = deltaVel / denominator
 
-        body0.applyImpulse(normal * normalImpulse, r0)
-        body1.applyImpulse(-normal * normalImpulse, r1)
+        body0.applyBodyWorldImpulse(normal * normalImpulse, r0)
+        body1.applyBodyWorldImpulse(-normal * normalImpulse, r1)
 
         val vrNew = body0.velocityRelativeTo(r0) - body1.velocityRelativeTo(r1)
         var tangentVel = normal * Vector3.dot(vrNew, normal) - vrNew
-        val tangentSpeed = tangentVel.length
+        val tangentSpeed = tangentVel.length()
         if (tangentSpeed < MIN_VEL_FOR_PROCESSING) return
         tangentVel /= tangentSpeed
 
@@ -106,8 +119,8 @@ class Simulation(private val events: EventBus, collisionFilter: (RigidBody, Rigi
 
         val impulseToReserve = tangentSpeed / denominator
         val i = if (impulseToReserve < collision.friction * normalImpulse) impulseToReserve else collision.friction * normalImpulse
-        body0.applyImpulse(tangentVel * i, r0)
-        body1.applyImpulse(-tangentVel * i, r1)
+        body0.applyBodyWorldImpulse(tangentVel * i, r0)
+        body1.applyBodyWorldImpulse(-tangentVel * i, r1)
     }
 
     companion object {

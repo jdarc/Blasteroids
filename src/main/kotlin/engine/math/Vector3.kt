@@ -19,26 +19,23 @@
 
 package engine.math
 
+import engine.math.Scalar.abs
+import engine.math.Scalar.max
+import engine.math.Scalar.min
+import engine.math.Scalar.sqr
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.get
 import org.khronos.webgl.set
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sqrt
 
-@Suppress("unused", "MemberVisibilityCanBePrivate")
+@Suppress("unused", "MemberVisibilityCanBePrivate", "DuplicatedCode")
 data class Vector3(val x: Float, val y: Float, val z: Float) {
 
-    constructor(x: Double, y: Double, z: Double) : this(x.toFloat(), y.toFloat(), z.toFloat())
+    constructor(s: Number) : this(s.toFloat(), s.toFloat(), s.toFloat())
 
-    constructor(s: Float) : this(s, s, s)
+    constructor(x: Number, y: Number, z: Number) : this(x.toFloat(), y.toFloat(), z.toFloat())
 
     constructor(src: Float32Array, offset: Int = 0) : this(src[offset + 0], src[offset + 1], src[offset + 2])
-
-    inline val length get() = sqrt(lengthSquared)
-
-    inline val lengthSquared get() = dot(this, this)
 
     operator fun unaryMinus() = Vector3(-x, -y, -z)
 
@@ -46,13 +43,23 @@ data class Vector3(val x: Float, val y: Float, val z: Float) {
 
     operator fun minus(rhs: Vector3) = Vector3(x - rhs.x, y - rhs.y, z - rhs.z)
 
+    operator fun div(rhs: Float) = Vector3(x / rhs, y / rhs, z / rhs)
+
+    operator fun div(rhs: Vector3) = Vector3(x / rhs.x, y / rhs.y, z / rhs.z)
+
     operator fun times(rhs: Float) = Vector3(x * rhs, y * rhs, z * rhs)
 
     operator fun times(rhs: Vector3) = Vector3(x * rhs.x, y * rhs.y, z * rhs.z)
 
-    operator fun div(rhs: Float) = Vector3(x / rhs, y / rhs, z / rhs)
+    operator fun times(m: Matrix4) = Vector3(
+        x * m.m00 + y * m.m10 + z * m.m20 + m.m30,
+        x * m.m01 + y * m.m11 + z * m.m21 + m.m31,
+        x * m.m02 + y * m.m12 + z * m.m22 + m.m32
+    )
 
-    operator fun div(rhs: Vector3) = Vector3(x / rhs.x, y / rhs.y, z / rhs.z)
+    fun length() = sqrt(lengthSquared())
+
+    fun lengthSquared() = dot(this, this)
 
     fun toArray(dst: Float32Array = Float32Array(3), offset: Int = 0) = dst.apply {
         this[offset + 0] = x
@@ -94,6 +101,16 @@ data class Vector3(val x: Float, val y: Float, val z: Float) {
         fun cross(a: Vector3, b: Vector3) = Vector3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x)
 
         fun normalize(v: Vector3) = v * Scalar.invSqrt(dot(v, v))
+
+        fun crossDot(xa: Vector3, xb: Vector3, dv: Vector3): Float {
+            val cx = xa.y * xb.z - xa.z * xb.y
+            val cy = xa.z * xb.x - xa.x * xb.z
+            val cz = xa.x * xb.y - xa.y * xb.x
+            return cx * dv.x + cy * dv.y + cz * dv.z
+        }
+
+        fun crossLength(a: Vector3, b: Vector3) =
+            sqrt((a.y * b.z - a.z * b.y).sqr() + (a.z * b.x - a.x * b.z).sqr() + (a.x * b.y - a.y * b.x).sqr())
 
         fun equals(lhs: Vector3, rhs: Vector3, epsilon: Float = Scalar.EPSILON) =
             Scalar.equals(lhs.x, rhs.x, epsilon) &&

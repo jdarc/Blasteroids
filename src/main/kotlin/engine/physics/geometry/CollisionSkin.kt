@@ -22,34 +22,25 @@ package engine.physics.geometry
 import engine.math.Matrix4
 import engine.math.Vector3
 
-class Hull(private val points: Array<Vector3>, private val scale: Float = 1F) : Shape() {
-    private var transpose = Matrix4.IDENTITY
+abstract class CollisionSkin {
 
-    override var origin = Vector3.ZERO
+    open var origin = Vector3.ZERO
 
-    override var basis = Matrix4.IDENTITY
+    open var basis = Matrix4.IDENTITY
+
+    open val boundingSphere = Float.MAX_VALUE
+
+    var restitution = 0.1F
         set(value) {
-            field = value
-            transpose = Matrix4.transpose(value)
+            field = value.coerceIn(0F, 1F)
         }
 
-    override val boundingSphere = Vector3.maxComponent(
-        points.fold(Vector3.NEGATIVE_INFINITY, { acc, vec -> Vector3.max(acc, vec) }) -
-        points.fold(Vector3.POSITIVE_INFINITY, { acc, vec -> Vector3.min(acc, vec) })
-    ) * scale * 0.5F
-
-    override fun getSupport(direction: Vector3) = basis * localGetSupporting(Vector3.normalize(transpose * direction)) + origin
-
-    private fun localGetSupporting(v: Vector3): Vector3 {
-        var out = Vector3.ZERO
-        var dist = Float.NEGATIVE_INFINITY
-        for (p in points) {
-            val dot = Vector3.dot(v, p)
-            if (dot > dist) {
-                dist = dot
-                out = p
-            }
+    var friction = 0.5F
+        set(value) {
+            field = value.coerceIn(0F, 1F)
         }
-        return out * scale
-    }
+
+    abstract fun getSupport(direction: Vector3): Vector3
+
+    abstract fun calculateBodyInertia(mass: Float): Matrix4
 }

@@ -51,7 +51,7 @@ class ShipNode(prefab: Prefab, camera: Camera, events: EventBus, simulation: Sim
             body.angularVelocity = Vector3.ZERO
         }
 
-        if (Keyboard.state.isKeyDown(Keys.Up)) body.addForce(body.orientation * Vector3(0F, thrustSpeed, 0F))
+        if (Keyboard.state.isKeyDown(Keys.Up)) body.addWorldForce(body.orientation * Vector3(0F, thrustSpeed, 0F))
 
         return super.update(seconds)
     }

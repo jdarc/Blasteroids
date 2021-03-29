@@ -21,25 +21,22 @@ package engine.physics.collision
 
 import engine.physics.RigidBody
 
-class CollisionSystem(private val canCollide: (RigidBody, RigidBody) -> Boolean) {
-    val bodies = mutableSetOf<RigidBody>()
+@Suppress("MemberVisibilityCanBePrivate")
+class CollisionSystem(private val collisionFilter: (RigidBody, RigidBody) -> Boolean, val tolerance: Float = 0.01F) {
+    private val narrowPhase = GjkEpaSolver()
 
-    fun detect(listener: CollisionListener) {
+    fun detect(bodies: Array<RigidBody>, handler: CollisionHandler) {
         for (body0 in bodies) {
             for (body1 in bodies) {
-                if (body0.id < body1.id && canCollide(body0, body1) && body0.hitTest(body1)) {
-                    val result = GjkEpaSolver.collide(body0.skin, body1.skin, COLLISION_TOLERANCE)
-                    if (result.hasCollided) {
-                        val r0 = result.pointA - body0.skin.origin
-                        val r1 = result.pointB - body1.skin.origin
-                        listener.collisionNotify(body0, body1, result.normal, r0, r1, result.depth)
+                if (body0.id < body1.id && collisionFilter(body0, body1) && body0.hitTest(body1)) {
+                    val results = narrowPhase.collide(body0.skin, body1.skin, tolerance)
+                    if (results.hasCollided) {
+                        val r0 = results.r0 - body0.skin.origin
+                        val r1 = results.r1 - body1.skin.origin
+                        handler.impact(body0, body1, results.normal, r0, r1, results.initialPenetration)
                     }
                 }
             }
         }
-    }
-
-    private companion object {
-        const val COLLISION_TOLERANCE = 0.01F
     }
 }

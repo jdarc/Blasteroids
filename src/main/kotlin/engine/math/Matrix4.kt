@@ -21,7 +21,10 @@ package engine.math
 
 import org.khronos.webgl.Float32Array
 import org.khronos.webgl.set
-import kotlin.math.*
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
+import kotlin.math.tan
 
 @Suppress("unused", "DuplicatedCode", "MemberVisibilityCanBePrivate")
 data class Matrix4(
@@ -120,6 +123,13 @@ data class Matrix4(
             Scalar.equals(lhs.m03, rhs.m03, epsilon) && Scalar.equals(lhs.m13, rhs.m13, epsilon) &&
             Scalar.equals(lhs.m23, rhs.m23, epsilon) && Scalar.equals(lhs.m33, rhs.m33, epsilon)
 
+        fun transformNormal(m: Matrix4, v: Vector3): Vector3 {
+            val x = m.m00 * v.x + m.m01 * v.y + m.m02 * v.z
+            val y = m.m10 * v.x + m.m11 * v.y + m.m12 * v.z
+            val z = m.m20 * v.x + m.m21 * v.y + m.m22 * v.z
+            return Vector3(x, y, z)
+        }
+
         fun transpose(mat: Matrix4) = Matrix4(
             mat.m00, mat.m01, mat.m02, mat.m03,
             mat.m10, mat.m11, mat.m12, mat.m13,
@@ -140,9 +150,7 @@ data class Matrix4(
             val b09 = mat.m12 * mat.m23 - mat.m22 * mat.m13
             val b10 = mat.m12 * mat.m33 - mat.m32 * mat.m13
             val b11 = mat.m22 * mat.m33 - mat.m32 * mat.m23
-            val det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06
-            if (abs(det) < Scalar.EPSILON) throw RuntimeException("matrix is not invertible")
-            val invDet = 1F / det
+            val invDet = 1F / (b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06)
             val a = (b11 * mat.m11 - b10 * mat.m21 + b09 * mat.m31) * invDet
             val b = (b10 * mat.m20 - b11 * mat.m10 - b09 * mat.m30) * invDet
             val c = (b05 * mat.m13 - b04 * mat.m23 + b03 * mat.m33) * invDet

@@ -19,11 +19,14 @@
 
 package engine.physics.geometry
 
+import engine.math.Matrix4
 import engine.math.Vector3
 
-class Sphere(private val radius: Float) : Shape() {
+class Sphere(private val radius: Float) : CollisionSkin() {
 
     override val boundingSphere get() = radius
 
-    override fun getSupport(direction: Vector3) = origin + direction * (radius / direction.length)
+    override fun getSupport(direction: Vector3) = origin + direction * (radius / direction.length())
+
+    override fun calculateBodyInertia(mass: Float) = Matrix4.createScale(0.4F * mass * boundingSphere * boundingSphere)
 }

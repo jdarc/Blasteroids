@@ -19,28 +19,41 @@
 
 package engine.physics.geometry
 
+import engine.math.Aabb
 import engine.math.Matrix4
-import engine.math.Scalar
+import engine.math.Scalar.max
 import engine.math.Vector3
-import engine.physics.collision.CollisionShape
 
-abstract class Shape : CollisionShape {
+class ConvexHull(private val points: Array<Vector3>, scale: Float = 1F, tolerance: Float = 0.01F) : CollisionSkin() {
+    private val scale = scale + tolerance
+
+    private val bounds = points.fold(Aabb(), { box, vec -> box.aggregate(vec) })
 
     override var origin = Vector3.ZERO
 
     override var basis = Matrix4.IDENTITY
 
-    open val boundingSphere get() = Scalar.HUGE
+    override val boundingSphere = max(bounds.width, max(bounds.height, bounds.depth)) * 0.5F * this.scale
 
-    var restitution = 0.2F
-        set(value) {
-            field = value.coerceIn(0F, 1F)
+    override fun getSupport(direction: Vector3) = basis * getSupportLocal(direction * basis) + origin
+
+    override fun calculateBodyInertia(mass: Float): Matrix4 {
+        val xx = bounds.width * bounds.width
+        val yy = bounds.height * bounds.height
+        val zz = bounds.depth * bounds.depth
+        return Matrix4.createScale(mass / 12F * (zz + yy), mass / 12F * (xx + zz), mass / 12F * (xx + yy))
+    }
+
+    private fun getSupportLocal(v: Vector3): Vector3 {
+        var out = Vector3.ZERO
+        var dist = Float.NEGATIVE_INFINITY
+        for (point in points) {
+            val dot = v.x * point.x + v.y * point.y + v.z * point.z
+            if (dot > dist) {
+                dist = dot
+                out = point
+            }
         }
-
-    var friction = 0.5F
-        set(value) {
-            field = value.coerceIn(0F, 1F)
-        }
-
-    open fun calculateBodyInertia(mass: Float) = Matrix4.createScale(0.4F * mass * boundingSphere * boundingSphere)
+        return out * scale
+    }
 }

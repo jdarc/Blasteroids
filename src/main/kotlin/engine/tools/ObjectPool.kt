@@ -17,11 +17,24 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package engine.physics.collision
+package engine.tools
 
-import engine.math.Vector3
-import engine.physics.RigidBody
+@Suppress("unused")
+class ObjectPool<T>(private val factory: () -> T) {
+    private var pool = generate(16, factory)
+    private var index = 0
 
-interface CollisionListener {
-    fun collisionNotify(body0: RigidBody, body1: RigidBody, normal: Vector3, r0: Vector3, r1: Vector3, penetration: Float)
+    val capacity get() = pool.size
+
+    fun next(): T {
+        if (pool.size <= index) pool += generate(pool.size, factory)
+        return pool[index++]
+    }
+
+    fun reset() {
+        index = 0
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private inline fun generate(size: Int, factory: () -> T) = Array<Any?>(size) { factory() } as Array<T>
 }

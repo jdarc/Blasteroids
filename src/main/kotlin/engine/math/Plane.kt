@@ -37,7 +37,7 @@ class Plane private constructor(val normal: Vector3, val distance: Float) {
 
     companion object {
         fun normalize(plane: Plane): Plane {
-            val length = plane.normal.length
+            val length = plane.normal.length()
             if (length < Scalar.EPSILON) throw ArithmeticException(length.toString())
             if (Scalar.equals(length, 1F)) return plane
             return Plane(plane.normal / length, plane.distance / length)

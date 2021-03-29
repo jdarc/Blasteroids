@@ -19,35 +19,38 @@
 
 package engine.math
 
+import kotlinx.browser.window
 import org.khronos.webgl.Float32Array
-import kotlin.math.abs
-import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-@Suppress("unused")
 object Scalar {
+    private val random = Random(window.performance.now().toInt())
+
     const val PI = 3.14159265359F
-    const val TAU = 6.28318530718F
     const val EPSILON = 0.00000001F
     const val TINY = 0.00001F
     const val HUGE = 100000F
 
     fun equals(a: Float, b: Float, epsilon: Float = EPSILON) = !(a - b).isNaN() && abs(a - b) <= epsilon
 
-    fun invSqrt(n: Float) = 1F / sqrt(n)
+    fun abs(n: Float) = if (n < 0) -n else n
 
-    fun hypot(x: Float, y: Float, z: Float) = sqrt(x.sqr() + y.sqr() + z.sqr())
+    fun abs(n: Double) = if (n < 0) -n else n
 
-    fun isPot(value: Int) = (value > 0) && (value and value - 1) == 0
+    fun min(a: Float, b: Float) = if (a < b) a else b
 
-    fun toRadians(degrees: Float) = degrees * PI / 180F
+    fun max(a: Float, b: Float) = if (a > b) a else b
 
-    fun toDegrees(radians: Float) = radians * 180F / PI
+    fun invSqrt(n: Float) = 1 / sqrt(n)
 
-    fun rnd(from: Float = -1F, to: Float = 1F) = Random.nextDouble(from.toDouble(), to.toDouble()).toFloat()
+    fun hypot(x: Float, y: Float, z: Float) = sqrt(x * x + y * y + z * z)
 
-    fun Float.sqr() = this.pow(2)
+    fun rnd() = random.nextFloat()
+
+    fun rnd(from: Int = 0, to: Int = Int.MAX_VALUE) = random.nextInt(from, to)
+
+    fun Float.sqr() = this * this
 
     fun FloatArray.pack() = Float32Array(this.toTypedArray())
 }

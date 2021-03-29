@@ -42,7 +42,7 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
     private val camera = Camera(fov = Scalar.PI / 8F)
     private val scene = Scene()
     private val events = EventBus()
-    private val simulation = Simulation(events, ::detectCollisions)
+    private val simulation = Simulation(events, ::filterCollisions)
 
     suspend fun run() {
         window.addEventListener("webglcontextlost", { GlobalScope.launch { device.initialize() } })
@@ -90,7 +90,7 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         scheduler.schedule(0.1F, (level + 4) / 10F) { arena.addNodes(AsteroidNode(asteroids, camera, events, simulation, 0)) }
     }
 
-    private fun detectCollisions(body0: RigidBody, body1: RigidBody): Boolean {
+    private fun filterCollisions(body0: RigidBody, body1: RigidBody): Boolean {
         val mask = (body0.data as ObjectTypes).mask or (body1.data as ObjectTypes).mask
         return mask != ObjectTypes.SHIP + ObjectTypes.MISSILE
     }

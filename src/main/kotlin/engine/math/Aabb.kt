@@ -19,9 +19,9 @@
 
 package engine.math
 
+import engine.math.Scalar.max
+import engine.math.Scalar.min
 import engine.math.Scalar.sqr
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sqrt
 
 @Suppress("unused", "DuplicatedCode", "MemberVisibilityCanBePrivate")

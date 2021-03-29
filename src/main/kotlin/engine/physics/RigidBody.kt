@@ -21,57 +21,55 @@ package engine.physics
 
 import engine.math.Matrix4
 import engine.math.Scalar
+import engine.math.Scalar.sqr
 import engine.math.Vector3
-import engine.physics.geometry.Shape
-import kotlin.math.cos
-import kotlin.math.sin
+import engine.physics.geometry.CollisionSkin
 
-class RigidBody(val skin: Shape) {
+class RigidBody(val skin: CollisionSkin) {
     val id = ID++
 
     private var bodyInertia = Matrix4.IDENTITY
     private var bodyInvInertia = Matrix4.IDENTITY
     private var invOrientation = Matrix4.IDENTITY
 
-    private val state = PhysicsState()
+    private val tmpState = PhysicsState()
+    private val newState = PhysicsState()
 
     var data: Any = ""
 
-    var mass = 0F
+    var mass = 1F
         set(value) {
-            field = value.coerceAtLeast(Float.MIN_VALUE)
-            inverseMass = 1F / value
+            field = value.coerceAtLeast(Scalar.TINY)
             bodyInertia = skin.calculateBodyInertia(field)
             bodyInvInertia = Matrix4.invert(bodyInertia)
             updateInertia()
         }
 
-    var inverseMass = 0F
-        private set
+    val inverseMass get() = 1F / mass
 
     var position
-        get() = state.position
+        get() = newState.position
         set(value) {
-            state.position = value
+            newState.position = value
         }
 
     var orientation
-        get() = state.orientation
+        get() = newState.orientation
         set(value) {
-            state.orientation = value
+            newState.orientation = value
             updateInertia()
         }
 
     var linearVelocity
-        get() = state.linearVelocity
+        get() = newState.linearVelocity
         set(value) {
-            state.linearVelocity = value
+            newState.linearVelocity = value
         }
 
     var angularVelocity
-        get() = state.angularVelocity
+        get() = newState.angularVelocity
         set(value) {
-            state.angularVelocity = value
+            newState.angularVelocity = value
         }
 
     private var force = Vector3.ZERO
@@ -83,39 +81,43 @@ class RigidBody(val skin: Shape) {
     var worldInvInertia = Matrix4.IDENTITY
         private set
 
-    fun hitTest(other: RigidBody): Boolean {
-        val sumRadius = skin.boundingSphere + other.skin.boundingSphere
-        return (position - other.position).lengthSquared <= sumRadius * sumRadius
+    fun storeState() = tmpState.copy(newState)
+
+    fun restoreState() {
+        newState.copy(tmpState)
+        updateInertia()
     }
+
+    fun hitTest(other: RigidBody) = (position - other.position).lengthSquared() <= (skin.boundingSphere + other.skin.boundingSphere).sqr()
 
     fun clearForces() {
         force = Vector3.ZERO
         torque = Vector3.ZERO
     }
 
-    fun addForce(force: Vector3) {
+    fun addWorldForce(force: Vector3) {
         this.force += force
     }
 
-    fun applyImpulse(impulse: Vector3, delta: Vector3) {
+    fun applyBodyWorldImpulse(impulse: Vector3, delta: Vector3) {
         linearVelocity += impulse * inverseMass
         angularVelocity += worldInvInertia * Vector3.cross(delta, impulse)
     }
 
-    fun integrate(dt: Float) {
-        linearVelocity += force * (dt * inverseMass)
-        angularVelocity += worldInvInertia * torque * dt
+    fun updateVelocity(dt: Float) {
+        linearVelocity += force * (inverseMass * dt) * 0.99995F
+        angularVelocity += worldInvInertia * torque * dt * 0.99995F
+    }
 
-        val angMomBefore = worldInertia * angularVelocity
+    fun updatePosition(dt: Float) {
+        val angMomBefore = Matrix4.transformNormal(worldInertia, angularVelocity)
 
         position += linearVelocity * dt
-        orientation = addAngularVelocityToOrientation(angularVelocity, orientation, dt)
+        val ang = angularVelocity.length() * dt
+        if (ang > Scalar.TINY) orientation = Matrix4.createFromAxisAngle(angularVelocity, ang) * orientation
 
-        invOrientation = Matrix4.transpose(orientation)
-        worldInvInertia = bodyInvInertia * orientation * invOrientation
-        worldInertia = bodyInertia * orientation * invOrientation
-        angularVelocity = worldInvInertia * angMomBefore
-
+        updateInertia()
+        angularVelocity = Matrix4.transformNormal(worldInvInertia, angMomBefore)
         skin.origin = position
         skin.basis = orientation
     }
@@ -128,32 +130,13 @@ class RigidBody(val skin: Shape) {
         worldInvInertia = orientation * bodyInvInertia * invOrientation
     }
 
-    private fun addAngularVelocityToOrientation(angularVelocity: Vector3, orientation: Matrix4, dt: Float): Matrix4 {
-        val ang = angularVelocity.length
-        if (ang <= Scalar.TINY) return orientation
-        val dir = angularVelocity / ang
-        val cos = cos(-ang * dt)
-        val sin = sin(-ang * dt)
-        val t = 1F - cos
-        val r0 = cos + dir.x * dir.x * t
-        val r5 = cos + dir.y * dir.y * t
-        val ra = cos + dir.z * dir.z * t
-        val r4 = dir.x * dir.y * t + dir.z * sin
-        val r1 = dir.x * dir.y * t - dir.z * sin
-        val r8 = dir.x * dir.z * t - dir.y * sin
-        val r2 = dir.x * dir.z * t + dir.y * sin
-        val r9 = dir.y * dir.z * t + dir.x * sin
-        val r6 = dir.y * dir.z * t - dir.x * sin
-        val m11 = r0 * orientation.m00 + r4 * orientation.m10 + r8 * orientation.m20
-        val m12 = r1 * orientation.m00 + r5 * orientation.m10 + r9 * orientation.m20
-        val m13 = r2 * orientation.m00 + r6 * orientation.m10 + ra * orientation.m20
-        val m21 = r0 * orientation.m01 + r4 * orientation.m11 + r8 * orientation.m21
-        val m22 = r1 * orientation.m01 + r5 * orientation.m11 + r9 * orientation.m21
-        val m23 = r2 * orientation.m01 + r6 * orientation.m11 + ra * orientation.m21
-        val m31 = r0 * orientation.m02 + r4 * orientation.m12 + r8 * orientation.m22
-        val m32 = r1 * orientation.m02 + r5 * orientation.m12 + r9 * orientation.m22
-        val m33 = r2 * orientation.m02 + r6 * orientation.m12 + ra * orientation.m22
-        return Matrix4(m11, m12, m13, 0F, m21, m22, m23, 0F, m31, m32, m33, 0F, 0F, 0F, 0F, 1F)
+    override fun hashCode() = id
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class.js != other::class.js) return false
+        other as RigidBody
+        return id == other.id
     }
 
     init {
@@ -168,6 +151,13 @@ class RigidBody(val skin: Shape) {
             var orientation = Matrix4.IDENTITY
             var linearVelocity = Vector3.ZERO
             var angularVelocity = Vector3.ZERO
+
+            fun copy(other: PhysicsState) {
+                position = other.position
+                orientation = other.orientation
+                linearVelocity = other.linearVelocity
+                angularVelocity = other.angularVelocity
+            }
         }
     }
 }

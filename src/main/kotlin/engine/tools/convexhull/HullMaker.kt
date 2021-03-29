@@ -1,6 +1,10 @@
 package engine.tools.convexhull
 
-import kotlin.math.*
+import engine.math.Scalar
+import engine.math.Scalar.abs
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 @Suppress("DuplicatedCode", "SpellCheckingInspection")
 class HullMaker {
@@ -242,7 +246,7 @@ class HullMaker {
     }
 
     private companion object {
-        const val RADS_PER_DEG = PI / 180.0
+        const val RADS_PER_DEG = Scalar.PI / 180.0
         const val EPSILON = 0.00000001
 
         fun hasVert(t: Int3, v: Int) = t[0] == v || t[1] == v || t[2] == v
