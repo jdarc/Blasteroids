@@ -81,6 +81,7 @@ class Device(canvas: HTMLCanvasElement) : Renderer {
             activeProgram.setAmbientTexture(textures.getOrPut(maps.ambient, { gl.createImageTexture(maps.ambient.source) }))
             activeProgram.setDiffuseTexture(textures.getOrPut(maps.diffuse, { gl.createImageTexture(maps.diffuse.source) }))
             activeProgram.setSpecularTexture(textures.getOrPut(maps.specular, { gl.createImageTexture(maps.specular.source) }))
+            activeProgram.setNormalTexture(textures.getOrPut(maps.normal, { gl.createImageTexture(maps.normal.source) }))
         }
 
     override var world = Matrix4.IDENTITY

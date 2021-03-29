@@ -70,6 +70,8 @@ class Program(private val gl: WebGL2RenderingContext, vertexShaderSrc: String, f
 
     fun setSpecularTexture(texture: WebGLTexture) = gl.bindTexture2D(2, textureUniforms.specular, texture)
 
+    fun setNormalTexture(texture: WebGLTexture) = gl.bindTexture2D(3, textureUniforms.normal, texture)
+
     fun setShininess(shininess: Float) = gl.uniform1f(shininessUniform, shininess)
 
     fun setCameraPosition(vector: Vector3) = gl.uniformVec3(cameraUniform, vector)
@@ -108,6 +110,7 @@ class Program(private val gl: WebGL2RenderingContext, vertexShaderSrc: String, f
             val ambient = gl.getUniformLocation(program, "${name}.ambient")
             val diffuse = gl.getUniformLocation(program, "${name}.diffuse")
             val specular = gl.getUniformLocation(program, "${name}.specular")
+            val normal = gl.getUniformLocation(program, "${name}.normal")
         }
 
         private class LightUniforms(gl: WebGL2RenderingContext, program: WebGLProgram, index: Int) {

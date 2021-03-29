@@ -84,6 +84,7 @@ object Loader {
                 line.startsWith("map_ka", true) -> currentMaterial?.textures?.ambient = Texture.fetch("$path/${line.trim().split(' ')[1]}")
                 line.startsWith("map_kd", true) -> currentMaterial?.textures?.diffuse = Texture.fetch("$path/${line.trim().split(' ')[1]}")
                 line.startsWith("map_ks", true) -> currentMaterial?.textures?.specular = Texture.fetch("$path/${line.trim().split(' ')[1]}")
+                line.startsWith("norm", true) -> currentMaterial?.textures?.normal = Texture.fetch("$path/${line.trim().split(' ')[1]}")
             }
         }
         materials

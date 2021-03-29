@@ -26,9 +26,8 @@ import org.w3c.dom.Image
 class Texture private constructor(val source: Image) {
 
     companion object {
-        val DEFAULT = Texture(Image().apply {
-            src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAD0lEQVQYlWP4TwAwjAwFAIS1/wGYKmMjAAAAAElFTkSuQmCC"
-        })
+        val DEFAULT = Texture(Image().apply { src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAD0lEQVQYlWP4TwAwjAwFAIS1/wGYKmMjAAAAAElFTkSuQmCC" })
+        val DEFAULT_NORMAL = Texture(Image().apply { src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAABmJLR0QALgAuAC5pt0w/AAAAFUlEQVQI12NsaPjPgA0wMeAAg1MCAJHSAg9sSMu6AAAAAElFTkSuQmCC" })
 
         suspend fun fetch(filename: String): Texture {
             val channel = Channel<Texture>(0)
