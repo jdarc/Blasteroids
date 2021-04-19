@@ -117,6 +117,11 @@ data class Vector3(val x: Float, val y: Float, val z: Float) {
             Scalar.equals(lhs.y, rhs.y, epsilon) &&
             Scalar.equals(lhs.z, rhs.z, epsilon)
 
-        fun random(x: Float = 1F, y: Float = 1F, z: Float = 1F) = normalize(Vector3(x * Scalar.rnd(), y * Scalar.rnd(), z * Scalar.rnd()))
+        fun random(x: Float = 1F, y: Float = 1F, z: Float = 1F): Vector3 {
+            val rx = 2F * x * Scalar.rnd() - x
+            val ry = 2F * y * Scalar.rnd() - y
+            val rz = 2F * z * Scalar.rnd() - z
+            return normalize(Vector3(rx, ry, rz))
+        }
     }
 }

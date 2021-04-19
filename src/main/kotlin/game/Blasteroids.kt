@@ -19,12 +19,14 @@
 
 package game
 
+import engine.audio.AudioManager
 import engine.components.LightSource
 import engine.core.*
 import engine.graph.BranchNode
 import engine.graph.Scene
 import engine.math.Scalar
 import engine.math.Vector3
+import engine.physics.CollisionEvent
 import engine.physics.RigidBody
 import engine.physics.Simulation
 import engine.tools.Scheduler
@@ -43,6 +45,9 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
     private val scene = Scene()
     private val events = EventBus()
     private val simulation = Simulation(events, ::filterCollisions)
+    private val audioManager = AudioManager()
+    private val explodeAudio = audioManager.readSample("sounds", "explode.wav")
+    private val bumpAudio = audioManager.readSample("sounds", "bump.wav")
 
     suspend fun run() {
         window.addEventListener("webglcontextlost", { GlobalScope.launch { device.initialize() } })
@@ -57,17 +62,27 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         val arena = BranchNode()
         arena.addComponents(LightSource(0, Color.WHITE, Vector3(0F, 30F, 20F)))
 
-        arena.addNodes(ShipNode(ship, camera, events, simulation, scheduler))
+        arena.addNodes(ShipNode(ship, camera, events, simulation, scheduler, audioManager))
 
         var level = 1
         var asteroidsCount = 0
 
         events.subscribe(ASTEROID_CREATED) { asteroidsCount += 1 }
+
         events.subscribe(ASTEROID_DESTROYED) {
+            explodeAudio.play()
             asteroidsCount -= 1
             if (asteroidsCount <= 0) {
                 level += 1
                 spawnAsteroid(level, arena, asteroids)
+            }
+        }
+
+        events.subscribe(Simulation.COLLISION_EVENT) { impact ->
+            impact as CollisionEvent
+            if ((impact.body0.data as ObjectTypes == ObjectTypes.SHIP) or
+                (impact.body1.data as ObjectTypes == ObjectTypes.SHIP)) {
+                bumpAudio.play()
             }
         }
 

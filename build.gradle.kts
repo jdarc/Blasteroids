@@ -1,5 +1,5 @@
 plugins {
-    kotlin("js") version "1.5.0-M2"
+    id("org.jetbrains.kotlin.js") version "1.5.0-RC"
 }
 
 repositories {
@@ -12,18 +12,13 @@ dependencies {
 
 kotlin {
     js(IR) {
+        binaries.executable()
         browser {
-            webpackTask {
+            commonWebpackConfig {
                 cssSupport.enabled = true
                 outputFileName = "game.js"
                 sourceMaps = false
             }
-            runTask {
-                cssSupport.enabled = true
-                outputFileName = "game.js"
-                sourceMaps = false
-            }
-            binaries.executable()
         }
     }
 }

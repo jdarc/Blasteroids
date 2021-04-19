@@ -26,7 +26,7 @@ class EventBus : Publisher<String, Any> {
     private val listeners = mutableMapOf<String, MutableSet<Subscriber<Any>>>()
 
     override fun subscribe(eventType: String, subscriber: Subscriber<Any>) {
-        listeners.getOrPut(eventType, { mutableSetOf() }).add(subscriber)
+        listeners.getOrPut(eventType) { mutableSetOf() }.add(subscriber)
     }
 
     override fun unsubscribe(eventType: String, subscriber: Subscriber<Any>) {

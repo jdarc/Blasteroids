@@ -56,7 +56,7 @@ class Assembler {
     }
 
     fun center() {
-        val cog = vertices.fold(Vector3.ZERO, { acc, cur -> acc + cur }) / vertices.size.toFloat()
+        val cog = vertices.fold(Vector3.ZERO) { acc, cur -> acc + cur } / vertices.size.toFloat()
         val centered = vertices.map { it - cog }
         vertices.clear()
         vertices.addAll(centered)

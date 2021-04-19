@@ -19,6 +19,7 @@
 
 package game
 
+import engine.audio.AudioManager
 import engine.graph.BranchNode
 import engine.io.Keyboard
 import engine.io.Keys
@@ -31,8 +32,10 @@ class GunNode(
     private val eventBus: EventBus,
     private val simulation: Simulation,
     private val scheduler: Scheduler,
+    audioManager: AudioManager,
     transform: Matrix4
 ) : BranchNode(transform) {
+    private val shootAudio = audioManager.readSample("sounds", "shoot.wav")
     private val arena by lazy { root?.get(0) as BranchNode }
     private var fireRate = 0.1F
     private var timer = 0F
@@ -46,6 +49,7 @@ class GunNode(
 
     private fun fire() {
         if (timer - last < fireRate) return
+        shootAudio.play()
         val missile = MissileNode(eventBus, simulation)
         missile.fire(transformedPosition, Vector3(-combinedTransform.m10, combinedTransform.m00, 0F))
         arena.addNodes(missile)

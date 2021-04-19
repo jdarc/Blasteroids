@@ -26,13 +26,13 @@ import engine.math.Vector3
 
 class Model(private val parts: Map<Material, Mesh>) : Geometry {
 
-    override val vertexCount = parts.values.sumBy { it.vertexCount }
+    override val vertexCount = parts.values.sumOf { it.vertexCount }
 
-    override val triangleCount = parts.values.sumBy { it.triangleCount }
+    override val triangleCount = parts.values.sumOf { it.triangleCount }
 
-    override val vertices = parts.values.fold(arrayOf<Vector3>(), { acc, mesh -> acc + mesh.vertices })
+    override val vertices = parts.values.fold(arrayOf<Vector3>()) { acc, mesh -> acc + mesh.vertices }
 
-    override val bounds = parts.values.fold(Aabb(), { acc, src -> acc.aggregate(src.bounds) })
+    override val bounds = parts.values.fold(Aabb()) { acc, src -> acc.aggregate(src.bounds) }
 
     override fun render(renderer: Renderer) = parts.forEach { (material, mesh) ->
         renderer.material = material

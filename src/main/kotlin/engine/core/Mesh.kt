@@ -32,7 +32,13 @@ class Mesh(private val data: FloatArray, private val count: Int) : Geometry {
 
     override val vertices = data.toList().windowed(3, 8) { (x, y, z) -> Vector3(x, y, z) }.toTypedArray()
 
-    override val bounds = data.toList().windowed(3, 8).fold(Aabb(), { acc, src -> acc.aggregate(src[0], src[1], src[2]) })
+    override val bounds = data.toList().windowed(3, 8).fold(Aabb()) { acc, src ->
+        acc.aggregate(
+            src[0],
+            src[1],
+            src[2]
+        )
+    }
 
     override fun render(renderer: Renderer) = renderer.draw(data, count)
 

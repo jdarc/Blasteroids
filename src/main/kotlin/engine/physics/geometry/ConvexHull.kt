@@ -27,7 +27,7 @@ import engine.math.Vector3
 class ConvexHull(private val points: Array<Vector3>, scale: Float = 1F, tolerance: Float = 0.01F) : CollisionSkin() {
     private val scale = scale + tolerance
 
-    private val bounds = points.fold(Aabb(), { box, vec -> box.aggregate(vec) })
+    private val bounds = points.fold(Aabb()) { box, vec -> box.aggregate(vec) }
 
     override var origin = Vector3.ZERO
 

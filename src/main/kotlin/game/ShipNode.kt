@@ -19,6 +19,8 @@
 
 package game
 
+import engine.audio.AudioManager
+import engine.audio.Playback
 import engine.components.Physics
 import engine.components.WrapAround
 import engine.core.Camera
@@ -34,10 +36,19 @@ import engine.physics.RigidBody
 import engine.physics.Simulation
 import engine.tools.Scheduler
 
-class ShipNode(prefab: Prefab, camera: Camera, events: EventBus, simulation: Simulation, scheduler: Scheduler) : BranchNode() {
+class ShipNode(
+    prefab: Prefab,
+    camera: Camera,
+    events: EventBus,
+    simulation: Simulation,
+    scheduler: Scheduler,
+    audioManager: AudioManager
+) : BranchNode() {
     private val body = RigidBody(prefab.generateHull())
     private var angularSpeed = Scalar.PI
     private var thrustSpeed = 200F
+    private val thrustAudio = audioManager.readSample("sounds", "thrust.wav")
+    private lateinit var thrustPlayback: Playback
 
     override fun update(seconds: Float): Boolean {
         val rotation = when {
@@ -51,9 +62,19 @@ class ShipNode(prefab: Prefab, camera: Camera, events: EventBus, simulation: Sim
             body.angularVelocity = Vector3.ZERO
         }
 
-        if (Keyboard.state.isKeyDown(Keys.Up)) body.addWorldForce(body.orientation * Vector3(0F, thrustSpeed, 0F))
+        if (Keyboard.state.isKeyDown(Keys.Up)) {
+            handleThrust(true)
+            body.addWorldForce(body.orientation * Vector3(0F, thrustSpeed, 0F))
+        } else {
+            if (this::thrustPlayback.isInitialized) handleThrust(false)
+        }
 
         return super.update(seconds)
+    }
+
+    private fun handleThrust(engaged: Boolean) {
+        if (!this::thrustPlayback.isInitialized) thrustPlayback = thrustAudio.play(true)
+        thrustPlayback.volume = if (engaged) 1F else thrustPlayback.volume * 0.9F
     }
 
     init {
@@ -65,7 +86,10 @@ class ShipNode(prefab: Prefab, camera: Camera, events: EventBus, simulation: Sim
         simulation.constraints += LockZAxis(body)
         simulation.constraints += OnlyZRotation(body)
 
-        addNodes(LeafNode(prefab.geometry), GunNode(events, simulation, scheduler, Matrix4.createTranslation(0F, 2.2F, 0F)))
+        addNodes(
+            LeafNode(prefab.geometry),
+            GunNode(events, simulation, scheduler, audioManager, Matrix4.createTranslation(0F, 2.2F, 0F))
+        )
         addComponents(Physics(body), WrapAround(camera) { body.position = it })
     }
 

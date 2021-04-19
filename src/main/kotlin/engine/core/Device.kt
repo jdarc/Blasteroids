@@ -78,10 +78,10 @@ class Device(canvas: HTMLCanvasElement) : Renderer {
             activeProgram.setShininess(field.shininess)
 
             val maps = field.textures
-            activeProgram.setAmbientTexture(textures.getOrPut(maps.ambient, { gl.createImageTexture(maps.ambient.source) }))
-            activeProgram.setDiffuseTexture(textures.getOrPut(maps.diffuse, { gl.createImageTexture(maps.diffuse.source) }))
-            activeProgram.setSpecularTexture(textures.getOrPut(maps.specular, { gl.createImageTexture(maps.specular.source) }))
-            activeProgram.setNormalTexture(textures.getOrPut(maps.normal, { gl.createImageTexture(maps.normal.source) }))
+            activeProgram.setAmbientTexture(textures.getOrPut(maps.ambient) { gl.createImageTexture(maps.ambient.source) })
+            activeProgram.setDiffuseTexture(textures.getOrPut(maps.diffuse) { gl.createImageTexture(maps.diffuse.source) })
+            activeProgram.setSpecularTexture(textures.getOrPut(maps.specular) { gl.createImageTexture(maps.specular.source) })
+            activeProgram.setNormalTexture(textures.getOrPut(maps.normal) { gl.createImageTexture(maps.normal.source) })
         }
 
     override var world = Matrix4.IDENTITY
@@ -122,7 +122,7 @@ class Device(canvas: HTMLCanvasElement) : Renderer {
     }
 
     override fun draw(data: FloatArray, count: Int) {
-        activeProgram.bindVertexBuffer(buffers.getOrPut(data, { gl.createVertexBuffer(data.pack()) }))
+        activeProgram.bindVertexBuffer(buffers.getOrPut(data) { gl.createVertexBuffer(data.pack()) })
         gl.drawArrays(gl.TRIANGLES, 0, count)
     }
 
