@@ -47,7 +47,7 @@ class ShipNode(
     private val body = RigidBody(prefab.generateHull())
     private var angularSpeed = Scalar.PI
     private var thrustSpeed = 200F
-    private val thrustAudio = audioManager.readSample("sounds", "thrust.wav")
+    private val thrustAudio = audioManager.readSample("sounds", "rockets.ogg")
     private lateinit var thrustPlayback: Playback
 
     override fun update(seconds: Float): Boolean {

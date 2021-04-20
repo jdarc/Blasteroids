@@ -35,7 +35,7 @@ class GunNode(
     audioManager: AudioManager,
     transform: Matrix4
 ) : BranchNode(transform) {
-    private val shootAudio = audioManager.readSample("sounds", "shoot.wav")
+    private val shootAudio = audioManager.readSample("sounds", "shoot.ogg")
     private val arena by lazy { root?.get(0) as BranchNode }
     private var fireRate = 0.1F
     private var timer = 0F

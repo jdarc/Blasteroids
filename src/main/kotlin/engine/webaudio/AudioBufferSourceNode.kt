@@ -1,10 +1,6 @@
 package engine.webaudio
 
-external class AudioBufferSourceNode : AudioNode {
+external class AudioBufferSourceNode : AudioScheduledSourceNode {
     var buffer: AudioBuffer
     var loop: Boolean
-
-    fun start()
-    fun stop()
 }
-

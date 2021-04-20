@@ -46,8 +46,8 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
     private val events = EventBus()
     private val simulation = Simulation(events, ::filterCollisions)
     private val audioManager = AudioManager()
-    private val explodeAudio = audioManager.readSample("sounds", "explode.wav")
-    private val bumpAudio = audioManager.readSample("sounds", "bump.wav")
+    private val explodeAudio = audioManager.readSample("sounds", "explode.ogg")
+    private val bumpAudio = audioManager.readSample("sounds", "bump.ogg")
 
     suspend fun run() {
         window.addEventListener("webglcontextlost", { GlobalScope.launch { device.initialize() } })
