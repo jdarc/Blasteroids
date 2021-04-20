@@ -50,6 +50,8 @@ object Scalar {
 
     fun rnd(from: Int = 0, to: Int = Int.MAX_VALUE) = random.nextInt(from, to)
 
+    fun Int.sqr() = this * this
+
     fun Float.sqr() = this * this
 
     fun FloatArray.pack() = Float32Array(this.toTypedArray())

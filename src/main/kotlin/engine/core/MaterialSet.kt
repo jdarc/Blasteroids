@@ -23,5 +23,6 @@ interface MaterialSet<T> {
     var ambient: T
     var diffuse: T
     var specular: T
+    var emissive: T
     var normal: T
 }

@@ -76,6 +76,7 @@ class MissileNode(private val eventBus: EventBus, private val simulation: Simula
         private val MISSILE_MATERIAL = Material().apply {
             colors.diffuse = Color.RED
             colors.specular = Color.WHITE
+            colors.emissive = Color.RED
         }
     }
 }

@@ -102,7 +102,7 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
     override fun render() = scene.render(camera, device)
 
     private fun spawnAsteroid(level: Int, arena: BranchNode, asteroids: Array<Prefab>) {
-        scheduler.schedule(0.1F, (level + 4) / 10F) { arena.addNodes(AsteroidNode(asteroids, camera, events, simulation, 0)) }
+        scheduler.schedule(0.1F, level / 10F) { arena.addNodes(AsteroidNode(asteroids, camera, events, simulation, 0)) }
     }
 
     private fun filterCollisions(body0: RigidBody, body1: RigidBody): Boolean {

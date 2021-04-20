@@ -24,4 +24,5 @@ class Textures : MaterialSet<Texture> {
     override var diffuse = Texture.DEFAULT
     override var specular = Texture.DEFAULT
     override var normal = Texture.DEFAULT_NORMAL
+    override var emissive = Texture.DEFAULT
 }

@@ -24,4 +24,5 @@ class Colors : MaterialSet<Color> {
     override var diffuse = Color.WHITE
     override var specular = Color.BLACK
     override var normal = Color.WHITE
+    override var emissive = Color.BLACK
 }
