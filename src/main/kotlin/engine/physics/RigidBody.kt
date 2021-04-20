@@ -105,8 +105,8 @@ class RigidBody(val skin: CollisionSkin) {
     }
 
     fun updateVelocity(dt: Float) {
-        linearVelocity += force * (inverseMass * dt) * 0.995F
-        angularVelocity += worldInvInertia * torque * dt * 0.995F
+        linearVelocity += force * (inverseMass * dt) * 0.9995F
+        angularVelocity += worldInvInertia * torque * dt * 0.9995F
     }
 
     fun updatePosition(dt: Float) {

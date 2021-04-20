@@ -59,8 +59,8 @@ class AsteroidNode(
         body.mass = 1000F * size
         body.data = ObjectTypes.ASTEROID
         body.position = Vector3.random(1F, 1F, 0F) * 30F
-        body.linearVelocity = Vector3.random(1F, 1F, 0F) * Scalar.rnd() * 5F * speed
-        body.angularVelocity = Vector3.random(1F, 1F, 1F) * Scalar.rnd() * 5F * speed
+        body.linearVelocity = Vector3.random() * Scalar.rnd() * speed * 2.5F
+        body.angularVelocity = Vector3.random() * Scalar.rnd() * speed
         lockZAxis = LockZAxis(body)
 
         simulation.addBody(body)
