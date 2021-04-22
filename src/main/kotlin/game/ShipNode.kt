@@ -96,7 +96,7 @@ class ShipNode(
     private companion object {
         class OnlyZRotation(val body: RigidBody) : Constraint {
             override fun apply(dt: Float) {
-                body.angularVelocity = Vector3.clamp(body.angularVelocity, -Vector3.UNIT_Z, Vector3.UNIT_Z)
+                body.angularVelocity = Vector3.clamp(body.angularVelocity, Vector3.UNIT_Z * -5F, Vector3.UNIT_Z * 5F)
             }
         }
     }

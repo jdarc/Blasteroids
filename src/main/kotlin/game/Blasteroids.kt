@@ -105,8 +105,6 @@ class Blasteroids(canvas: HTMLCanvasElement) : Game {
         scheduler.schedule(0.1F, level / 10F) { arena.addNodes(AsteroidNode(asteroids, camera, events, simulation, 0)) }
     }
 
-    private fun filterCollisions(body0: RigidBody, body1: RigidBody): Boolean {
-        val mask = (body0.data as ObjectTypes).mask or (body1.data as ObjectTypes).mask
-        return mask != ObjectTypes.SHIP + ObjectTypes.MISSILE
-    }
+    private fun filterCollisions(body0: RigidBody, body1: RigidBody) =
+        body0.data as ObjectTypes + body1.data as ObjectTypes != ObjectTypes.SHIP + ObjectTypes.MISSILE
 }
