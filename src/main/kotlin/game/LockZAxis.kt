@@ -26,6 +26,7 @@ import engine.physics.RigidBody
 class LockZAxis(private val body: RigidBody) : Constraint {
 
     override fun apply(dt: Float) {
+        body.linearVelocity = body.linearVelocity * MASK
         body.position = body.position * MASK
     }
 
